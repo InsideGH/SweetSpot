@@ -5,8 +5,8 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -14,11 +14,11 @@ import com.sweetlab.sweetspot.adapter.LocalImageAdapter;
 import com.sweetlab.sweetspot.loader.LoaderConstants;
 import com.sweetlab.sweetspot.loader.LocalImageLoader;
 
-
 public class MainActivity extends ActionBarActivity implements LoaderManager.LoaderCallbacks<Cursor> {
-    private static final int SPAN_COUNT = 1;
+    private static final int SPAN_COUNT = 2;
+    private static final int ORIENTATION = StaggeredGridLayoutManager.VERTICAL;
     private RecyclerView mRecyclerView;
-    private LinearLayoutManager mLayoutManager;
+    private StaggeredGridLayoutManager mLayoutManager;
     private LocalImageAdapter mImageAdapter;
 
     @Override
@@ -28,7 +28,10 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.setHasFixedSize(true);
 
-        mLayoutManager = new LinearLayoutManager(this);
+        mLayoutManager = new StaggeredGridLayoutManager(SPAN_COUNT, ORIENTATION);
+        mLayoutManager.setGapStrategy(
+                StaggeredGridLayoutManager.GAP_HANDLING_NONE);
+
         mRecyclerView.setLayoutManager(mLayoutManager);
         getLoaderManager().initLoader(LoaderConstants.LOCAL_IMAGE, null, this);
     }
