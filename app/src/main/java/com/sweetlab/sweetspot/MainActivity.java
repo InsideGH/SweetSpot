@@ -1,25 +1,36 @@
 package com.sweetlab.sweetspot;
 
+import android.app.LoaderManager;
+import android.content.Loader;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.sweetlab.sweetspot.adapter.LocalImageAdapter;
+import com.sweetlab.sweetspot.loader.LoaderConstants;
+import com.sweetlab.sweetspot.loader.LocalImageLoader;
 
-public class MainActivity extends ActionBarActivity {
+
+public class MainActivity extends ActionBarActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final int SPAN_COUNT = 1;
     private RecyclerView mRecyclerView;
-    private StaggeredGridLayoutManager mLayoutManager;
+    private LinearLayoutManager mLayoutManager;
+    private LocalImageAdapter mImageAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        mLayoutManager = new StaggeredGridLayoutManager(SPAN_COUNT, StaggeredGridLayoutManager.VERTICAL);
+        mRecyclerView.setHasFixedSize(true);
+
+        mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
+        getLoaderManager().initLoader(LoaderConstants.LOCAL_IMAGE, null, this);
     }
 
     @Override
@@ -41,5 +52,21 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new LocalImageLoader(getApplicationContext());
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        mImageAdapter = new LocalImageAdapter(cursor);
+        mRecyclerView.setAdapter(mImageAdapter);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 }
