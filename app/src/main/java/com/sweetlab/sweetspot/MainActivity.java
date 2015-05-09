@@ -1,40 +1,25 @@
 package com.sweetlab.sweetspot;
 
 import android.app.Activity;
-import android.app.LoaderManager;
-import android.content.Loader;
-import android.database.Cursor;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.sweetlab.sweetspot.adapter.LocalImageAdapter;
-import com.sweetlab.sweetspot.loader.LoaderConstants;
-import com.sweetlab.sweetspot.loader.LocalImageLoader;
+import com.sweetlab.sweetspot.fragment.PhotoCollectionFragment;
 
-public class MainActivity extends Activity implements LoaderManager.LoaderCallbacks<Cursor> {
-    private static final int SPAN_COUNT = 2;
-    private static final int ORIENTATION = StaggeredGridLayoutManager.VERTICAL;
-    private RecyclerView mRecyclerView;
-    private StaggeredGridLayoutManager mLayoutManager;
-    private LocalImageAdapter mImageAdapter;
-
+public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        mRecyclerView.setHasFixedSize(true);
-
-        mLayoutManager = new StaggeredGridLayoutManager(SPAN_COUNT, ORIENTATION);
-        mLayoutManager.setGapStrategy(
-                StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
-        mRecyclerView.setHasFixedSize(true);
-
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        getLoaderManager().initLoader(LoaderConstants.LOCAL_IMAGE, null, this);
+        if (savedInstanceState == null) {
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            Fragment photoCollection = new PhotoCollectionFragment();
+            transaction.replace(R.id.main_activity_container, photoCollection, PhotoCollectionFragment.class.getSimpleName());
+            transaction.commit();
+        }
     }
 
     @Override
@@ -56,21 +41,5 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new LocalImageLoader(getApplicationContext());
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        mImageAdapter = new LocalImageAdapter(cursor);
-        mRecyclerView.setAdapter(mImageAdapter);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
     }
 }

@@ -11,7 +11,7 @@
         android:background="@color/photo_placeholder_color">
 
         <com.sweetlab.sweetspot.view.AspectImageView
-            android:id="@+id/photo_image"
+            android:id="@+id/photo_collection_imageview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:adjustViewBounds="true" />

@@ -14,8 +14,7 @@ public class PhotoHolder extends RecyclerView.ViewHolder {
     public PhotoHolder(View photo) {
         super(photo);
         mPhoto = photo;
-        mImageView = (AspectImageView) mPhoto.findViewById(R.id.photo_image);
-        mImageView.setOnClickListener(new OnClick());
+        mImageView = (AspectImageView) mPhoto.findViewById(R.id.photo_collection_imageview);
     }
 
     public View getMainView() {
@@ -24,12 +23,5 @@ public class PhotoHolder extends RecyclerView.ViewHolder {
 
     public AspectImageView getImageView() {
         return mImageView;
-    }
-
-    private static class OnClick implements View.OnClickListener {
-        @Override
-        public void onClick(View v) {
-
-        }
     }
 }

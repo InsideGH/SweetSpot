@@ -14,9 +14,13 @@ import com.sweetlab.sweetspot.R;
 import com.sweetlab.sweetspot.photometa.LocalPhoto;
 import com.sweetlab.sweetspot.view.AspectImageView;
 
+import rx.Observer;
+import rx.subjects.PublishSubject;
+
 public class LocalImageAdapter extends RecyclerView.Adapter<PhotoHolder> {
     private static final Bitmap.Config JPEG_CONFIG = Bitmap.Config.RGB_565;
     private final Cursor mCursor;
+    private PublishSubject<PhotoClick> mClickSubject;
 
     /**
      * Constructor.
@@ -25,24 +29,31 @@ public class LocalImageAdapter extends RecyclerView.Adapter<PhotoHolder> {
      */
     public LocalImageAdapter(Cursor cursor) {
         mCursor = cursor;
+        mClickSubject = PublishSubject.create();
+    }
+
+    /**
+     * Register for photo clicks.
+     *
+     * @param observer Observer.
+     */
+    public void registerForClicks(Observer<? super PhotoClick> observer) {
+        mClickSubject.subscribe(observer);
     }
 
     @Override
     public PhotoHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View photo = LayoutInflater.from(parent.getContext()).inflate(R.layout.photo, parent, false);
+        View photo = LayoutInflater.from(parent.getContext()).inflate(R.layout.photo_collection_item, parent, false);
         return new PhotoHolder(photo);
     }
 
     @Override
     public void onBindViewHolder(PhotoHolder holder, int position) {
         LocalPhoto photoMeta = createPhotoMeta(position);
-        setOnClickListener(position, holder);
+
+        setClickListener(position, photoMeta, holder);
         setViewAspect(photoMeta, holder);
         loadPhoto(photoMeta, holder);
-    }
-
-    private void setOnClickListener(int position, PhotoHolder holder) {
-
     }
 
     @Override
@@ -93,6 +104,36 @@ public class LocalImageAdapter extends RecyclerView.Adapter<PhotoHolder> {
             cacheLoader.into(imageView);
         } else {
             instance.getLoader(photo.getUrl(), JPEG_CONFIG).fit().centerInside().into(imageView);
+        }
+    }
+
+    /**
+     * Set a click listener on the photo.
+     *
+     * @param adapterPosition Adapter position.
+     * @param photoMeta       Photo meta data.
+     * @param holder          Holder with view.
+     */
+    private void setClickListener(int adapterPosition, LocalPhoto photoMeta, PhotoHolder holder) {
+        View.OnClickListener listener;
+        holder.getImageView().setOnClickListener(new ViewOnClickListener(adapterPosition, photoMeta));
+    }
+
+    /**
+     * Click listener for photos.
+     */
+    private class ViewOnClickListener implements View.OnClickListener {
+        private final int mAdapterPosition;
+        private final LocalPhoto mPhotoMeta;
+
+        public ViewOnClickListener(int adapterPosition, LocalPhoto photoMeta) {
+            mAdapterPosition = adapterPosition;
+            mPhotoMeta = photoMeta;
+        }
+
+        @Override
+        public void onClick(View v) {
+            mClickSubject.onNext(new PhotoClick(mAdapterPosition, mPhotoMeta));
         }
     }
 }
