@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="sweetspot_color">#33b5e5</color>
+    <color name="actionbar_color">#a033b5e5</color>
     <color name="photo_placeholder_color">#3033b5e5</color>
 </resources>

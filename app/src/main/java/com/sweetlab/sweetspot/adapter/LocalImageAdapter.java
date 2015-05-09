@@ -14,21 +14,9 @@ import com.sweetlab.sweetspot.R;
 import com.sweetlab.sweetspot.photometa.LocalPhoto;
 import com.sweetlab.sweetspot.view.AspectImageView;
 
-public class LocalImageAdapter extends RecyclerView.Adapter<LocalImageAdapter.ImageViewHolder> {
+public class LocalImageAdapter extends RecyclerView.Adapter<PhotoHolder> {
     private static final Bitmap.Config JPEG_CONFIG = Bitmap.Config.RGB_565;
     private final Cursor mCursor;
-
-    public static class ImageViewHolder extends RecyclerView.ViewHolder {
-
-        private final View mPhoto;
-        private final AspectImageView mImageView;
-
-        public ImageViewHolder(View photo) {
-            super(photo);
-            mPhoto = photo;
-            mImageView = (AspectImageView) mPhoto.findViewById(R.id.photo_image);
-        }
-    }
 
     /**
      * Constructor.
@@ -40,17 +28,21 @@ public class LocalImageAdapter extends RecyclerView.Adapter<LocalImageAdapter.Im
     }
 
     @Override
-    public ImageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public PhotoHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View photo = LayoutInflater.from(parent.getContext()).inflate(R.layout.photo, parent, false);
-        return new ImageViewHolder(photo);
+        return new PhotoHolder(photo);
     }
 
     @Override
-    public void onBindViewHolder(ImageViewHolder holder, int position) {
+    public void onBindViewHolder(PhotoHolder holder, int position) {
         LocalPhoto photoMeta = createPhotoMeta(position);
-
+        setOnClickListener(position, holder);
         setViewAspect(photoMeta, holder);
         loadPhoto(photoMeta, holder);
+    }
+
+    private void setOnClickListener(int position, PhotoHolder holder) {
+
     }
 
     @Override
@@ -79,8 +71,8 @@ public class LocalImageAdapter extends RecyclerView.Adapter<LocalImageAdapter.Im
      * @param photoMeta Photo meta data.
      * @param holder    Holder with view.
      */
-    private void setViewAspect(LocalPhoto photoMeta, ImageViewHolder holder) {
-        holder.mImageView.setAspectRatio(photoMeta.getAspectRatio());
+    private void setViewAspect(LocalPhoto photoMeta, PhotoHolder holder) {
+        holder.getImageView().setAspectRatio(photoMeta.getAspectRatio());
     }
 
     /**
@@ -89,17 +81,18 @@ public class LocalImageAdapter extends RecyclerView.Adapter<LocalImageAdapter.Im
      * @param photo  The meta info.
      * @param holder The holder.
      */
-    private void loadPhoto(final LocalPhoto photo, ImageViewHolder holder) {
-        final int width = holder.mImageView.getMeasuredWidth();
-        final int height = holder.mImageView.getMeasuredHeight();
+    private void loadPhoto(final LocalPhoto photo, PhotoHolder holder) {
+        AspectImageView imageView = holder.getImageView();
+        final int width = imageView.getMeasuredWidth();
+        final int height = imageView.getMeasuredHeight();
 
         DiskPicasso instance = DiskPicasso.getInstance();
         RequestCreator cacheLoader = instance.getCachedLoader(photo.getUrl(), width, height, JPEG_CONFIG);
 
         if (cacheLoader != null) {
-            cacheLoader.into(holder.mImageView);
+            cacheLoader.into(imageView);
         } else {
-            instance.getLoader(photo.getUrl(), JPEG_CONFIG).fit().centerInside().into(holder.mImageView);
+            instance.getLoader(photo.getUrl(), JPEG_CONFIG).fit().centerInside().into(imageView);
         }
     }
 }
