@@ -19,6 +19,8 @@ import com.sweetlab.sweetspot.adapter.PhotoClick;
 import com.sweetlab.sweetspot.loader.LoaderConstants;
 import com.sweetlab.sweetspot.loader.LocalImageLoader;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
+import com.sweetlab.sweetspot.view.AspectImageView;
+import com.sweetlab.sweetspot.view.ViewHelper;
 
 import rx.Observer;
 
@@ -83,14 +85,16 @@ public class PhotoCollectionFragment extends Fragment implements LoaderManager.L
 
         @Override
         public void onNext(PhotoClick photoClick) {
-            FragmentTransaction transaction = getActivity().getFragmentManager().beginTransaction();
             PhotoFragment photoFragment = new PhotoFragment();
+            AspectImageView imageView = photoClick.getPhotoHolder().getImageView();
 
             Bundle arguments = new Bundle();
-            arguments.putSerializable(BundleKeys.PHOTO_KEY, photoClick.getPhotoMeta());
+            arguments.putSerializable(BundleKeys.PHOTO_META_KEY, photoClick.getPhotoMeta());
+            arguments.putParcelable(BundleKeys.BITMAP_KEY, ViewHelper.copyBitmap(imageView, false));
             photoFragment.setArguments(arguments);
 
-            transaction.add(R.id.main_activity_container, photoFragment);
+            FragmentTransaction transaction = getActivity().getFragmentManager().beginTransaction();
+            transaction.replace(R.id.main_activity_container, photoFragment);
             transaction.addToBackStack(PhotoFragment.class.getSimpleName());
             transaction.commit();
         }

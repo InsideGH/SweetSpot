@@ -116,7 +116,7 @@ public class LocalImageAdapter extends RecyclerView.Adapter<PhotoHolder> {
      */
     private void setClickListener(int adapterPosition, LocalPhoto photoMeta, PhotoHolder holder) {
         View.OnClickListener listener;
-        holder.getImageView().setOnClickListener(new ViewOnClickListener(adapterPosition, photoMeta));
+        holder.getImageView().setOnClickListener(new ViewOnClickListener(adapterPosition, photoMeta, holder));
     }
 
     /**
@@ -125,15 +125,17 @@ public class LocalImageAdapter extends RecyclerView.Adapter<PhotoHolder> {
     private class ViewOnClickListener implements View.OnClickListener {
         private final int mAdapterPosition;
         private final LocalPhoto mPhotoMeta;
+        private final PhotoHolder mHolder;
 
-        public ViewOnClickListener(int adapterPosition, LocalPhoto photoMeta) {
+        public ViewOnClickListener(int adapterPosition, LocalPhoto photoMeta, PhotoHolder holder) {
             mAdapterPosition = adapterPosition;
             mPhotoMeta = photoMeta;
+            mHolder = holder;
         }
 
         @Override
         public void onClick(View v) {
-            mClickSubject.onNext(new PhotoClick(mAdapterPosition, mPhotoMeta));
+            mClickSubject.onNext(new PhotoClick(mAdapterPosition, mPhotoMeta, mHolder));
         }
     }
 }

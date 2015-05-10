@@ -1,9 +1,9 @@
 package com.sweetlab.sweetspot.fragment;
 
 import android.app.Fragment;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +20,7 @@ public class PhotoFragment extends Fragment {
 
     private ImageView mImageView;
     private LocalPhoto mPhotoMeta;
+    private Bitmap mPreloadBitmap;
 
     @Nullable
     @Override
@@ -28,8 +29,8 @@ public class PhotoFragment extends Fragment {
         mImageView = (ImageView) root.findViewById(R.id.photo_single_imageview);
 
         Bundle arguments = getArguments();
-        mPhotoMeta = (LocalPhoto) arguments.getSerializable(BundleKeys.PHOTO_KEY);
-        Log.d("Peter100", "PhotoFragment.onCreateView " + mPhotoMeta);
+        mPhotoMeta = (LocalPhoto) arguments.getSerializable(BundleKeys.PHOTO_META_KEY);
+        mPreloadBitmap = arguments.getParcelable(BundleKeys.BITMAP_KEY);
         return root;
     }
 
@@ -40,6 +41,9 @@ public class PhotoFragment extends Fragment {
     }
 
     private void loadPhoto() {
-        SinglePicasso.getPicasso().load(new File(mPhotoMeta.getUrl())).fit().centerInside().into(mImageView);
+        if (mPreloadBitmap != null) {
+            mImageView.setImageBitmap(mPreloadBitmap);
+        }
+        SinglePicasso.getPicasso().load(new File(mPhotoMeta.getUrl())).fit().centerInside().noPlaceholder().noFade().into(mImageView);
     }
 }

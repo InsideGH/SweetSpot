@@ -4,6 +4,7 @@
     android:layout_height="match_parent">
 
     <ImageView
+        android:transitionName="string/photo_transition_name"
         android:id="@+id/photo_single_imageview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
