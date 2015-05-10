@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.sweetlab.sweetspot.fragment.PhotoCollectionFragment;
+import com.sweetlab.sweetspot.fragment.CollectionFragment;
 
 public class MainActivity extends Activity {
     @Override
@@ -16,8 +16,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
-            Fragment photoCollection = new PhotoCollectionFragment();
-            transaction.replace(R.id.main_activity_container, photoCollection, PhotoCollectionFragment.class.getSimpleName());
+            Fragment photoCollection = new CollectionFragment();
+            transaction.replace(R.id.main_activity_container, photoCollection, CollectionFragment.class.getSimpleName());
             transaction.commit();
         }
     }

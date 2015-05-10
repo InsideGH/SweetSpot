@@ -2,20 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="@dimen/photo_layout_margin"
+    android:layout_margin="@dimen/collection_item_margin"
     android:orientation="vertical">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/photo_placeholder_color">
+        android:background="@color/collection_item_placeholder_color"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/collection_item_date_color"
+            android:gravity="center"
+            android:paddingBottom="@dimen/collection_item_text_padding"
+            android:paddingTop="@dimen/collection_item_text_padding"
+            android:visibility="gone" />
 
         <com.sweetlab.sweetspot.view.AspectImageView
-            android:transitionName="string/photo_transition_name"
             android:id="@+id/photo_collection_imageview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:adjustViewBounds="true" />
-    </RelativeLayout>
+            android:adjustViewBounds="true"
+            android:transitionName="string/photo_transition_name" />
+    </LinearLayout>
 
 </LinearLayout>

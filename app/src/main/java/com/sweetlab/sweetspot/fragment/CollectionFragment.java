@@ -9,13 +9,15 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.transition.Explode;
+import android.transition.Fade;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.sweetlab.sweetspot.R;
-import com.sweetlab.sweetspot.adapter.LocalImageAdapter;
-import com.sweetlab.sweetspot.adapter.PhotoClick;
+import com.sweetlab.sweetspot.adapter.CollectionAdapter;
+import com.sweetlab.sweetspot.adapter.CollectionItemClick;
 import com.sweetlab.sweetspot.loader.LoaderConstants;
 import com.sweetlab.sweetspot.loader.LocalImageLoader;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
@@ -24,13 +26,13 @@ import com.sweetlab.sweetspot.view.ViewHelper;
 
 import rx.Observer;
 
-public class PhotoCollectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class CollectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final int SPAN_COUNT = 2;
     private static final int ORIENTATION = StaggeredGridLayoutManager.VERTICAL;
 
     private RecyclerView mRecyclerView;
     private StaggeredGridLayoutManager mLayoutManager;
-    private LocalImageAdapter mImageAdapter;
+    private CollectionAdapter mImageAdapter;
 
     @Nullable
     @Override
@@ -61,7 +63,7 @@ public class PhotoCollectionFragment extends Fragment implements LoaderManager.L
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        mImageAdapter = new LocalImageAdapter(cursor);
+        mImageAdapter = new CollectionAdapter(cursor);
         mImageAdapter.registerForClicks(new PhotoClickObserver());
         mRecyclerView.setAdapter(mImageAdapter);
     }
@@ -74,7 +76,7 @@ public class PhotoCollectionFragment extends Fragment implements LoaderManager.L
     /**
      * Photo click observer.
      */
-    private class PhotoClickObserver implements Observer<PhotoClick> {
+    private class PhotoClickObserver implements Observer<CollectionItemClick> {
         @Override
         public void onCompleted() {
         }
@@ -84,12 +86,15 @@ public class PhotoCollectionFragment extends Fragment implements LoaderManager.L
         }
 
         @Override
-        public void onNext(PhotoClick photoClick) {
+        public void onNext(CollectionItemClick collectionItemClick) {
             PhotoFragment photoFragment = new PhotoFragment();
-            AspectImageView imageView = photoClick.getPhotoHolder().getImageView();
+            AspectImageView imageView = collectionItemClick.getPhotoHolder().getImageView();
+
+            setExitTransition(new Explode());
+            photoFragment.setReturnTransition(new Fade());
 
             Bundle arguments = new Bundle();
-            arguments.putSerializable(BundleKeys.PHOTO_META_KEY, photoClick.getPhotoMeta());
+            arguments.putSerializable(BundleKeys.PHOTO_META_KEY, collectionItemClick.getPhotoMeta());
             arguments.putParcelable(BundleKeys.BITMAP_KEY, ViewHelper.copyBitmap(imageView, false));
             photoFragment.setArguments(arguments);
 

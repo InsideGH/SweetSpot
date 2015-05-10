@@ -12,14 +12,14 @@ import android.widget.ImageView;
 import com.sweetlab.diskpicasso.SinglePicasso;
 import com.sweetlab.sweetspot.R;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
-import com.sweetlab.sweetspot.photometa.LocalPhoto;
+import com.sweetlab.sweetspot.photometa.PhotoMeta;
 
 import java.io.File;
 
 public class PhotoFragment extends Fragment {
 
     private ImageView mImageView;
-    private LocalPhoto mPhotoMeta;
+    private PhotoMeta mPhotoMeta;
     private Bitmap mPreloadBitmap;
 
     @Nullable
@@ -29,7 +29,7 @@ public class PhotoFragment extends Fragment {
         mImageView = (ImageView) root.findViewById(R.id.photo_single_imageview);
 
         Bundle arguments = getArguments();
-        mPhotoMeta = (LocalPhoto) arguments.getSerializable(BundleKeys.PHOTO_META_KEY);
+        mPhotoMeta = (PhotoMeta) arguments.getSerializable(BundleKeys.PHOTO_META_KEY);
         mPreloadBitmap = arguments.getParcelable(BundleKeys.BITMAP_KEY);
         return root;
     }

@@ -1,20 +1,33 @@
 package com.sweetlab.sweetspot.photometa;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class LocalPhoto implements Serializable {
+public class PhotoMeta implements Serializable {
     private final int mWidth;
     private final int mHeight;
     private final String mUrl;
     private final int mOrientation;
-    private float mAspectRatio;
+    private final long mDateTakenMs;
+    private final String mReadableDateTaken;
+    private final float mAspectRatio;
+    private final Integer mYear;
+    private final Integer mMonth;
+    private final Integer mDay;
 
-    public LocalPhoto(String path, int width, int height, int orientation) {
+    public PhotoMeta(String path, int width, int height, int orientation, long dateTaken) {
         mUrl = path;
         mWidth = width;
         mHeight = height;
         mOrientation = orientation;
         mAspectRatio = getWidth() / (float) getHeight();
+        mDateTakenMs = dateTaken;
+        mReadableDateTaken = new SimpleDateFormat("yyyy-MM-dd").format(new Date(dateTaken));
+        String[] split = mReadableDateTaken.split("-");
+        mYear = Integer.valueOf(split[0]);
+        mMonth = Integer.valueOf(split[1]);
+        mDay = Integer.valueOf(split[2]);
     }
 
     public String getUrl() {
@@ -47,6 +60,26 @@ public class LocalPhoto implements Serializable {
 
     public float getAspectRatio() {
         return mAspectRatio;
+    }
+
+    public long getDateTakenMs() {
+        return mDateTakenMs;
+    }
+
+    public String getReadableDateTaken() {
+        return mReadableDateTaken;
+    }
+
+    public int getYear() {
+        return mYear;
+    }
+
+    public int getMonth() {
+        return mMonth;
+    }
+
+    public int getDay() {
+        return mDay;
     }
 
     @Override
