@@ -23,11 +23,14 @@ public class PhotoMeta implements Serializable {
         mOrientation = orientation;
         mAspectRatio = getWidth() / (float) getHeight();
         mDateTakenMs = dateTaken;
-        mReadableDateTaken = new SimpleDateFormat("yyyy-MM-dd").format(new Date(dateTaken));
-        String[] split = mReadableDateTaken.split("-");
-        mYear = Integer.valueOf(split[0]);
-        mMonth = Integer.valueOf(split[1]);
-        mDay = Integer.valueOf(split[2]);
+
+        Date date = new Date(dateTaken);
+        mReadableDateTaken = new SimpleDateFormat("yyyy-MM-dd  EEEE").format(date);
+        String[] yearMonthDay = new SimpleDateFormat("yyyy-MM-dd").format(date).split("-");
+
+        mYear = Integer.valueOf(yearMonthDay[0]);
+        mMonth = Integer.valueOf(yearMonthDay[1]);
+        mDay = Integer.valueOf(yearMonthDay[2]);
     }
 
     public String getUrl() {

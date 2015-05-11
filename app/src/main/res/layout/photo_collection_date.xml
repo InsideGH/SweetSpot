@@ -10,9 +10,6 @@
         android:id="@+id/date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/collection_item_date_color"
-        android:gravity="center"
-        android:paddingBottom="@dimen/collection_item_text_padding"
-        android:paddingTop="@dimen/collection_item_text_padding" />
-
+        android:background="@drawable/divider_shape"
+        android:gravity="center" />
 </LinearLayout>
