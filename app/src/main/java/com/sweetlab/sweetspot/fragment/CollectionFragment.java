@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager;
 import android.content.Loader;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -18,21 +17,35 @@ import android.view.ViewGroup;
 import com.sweetlab.sweetspot.R;
 import com.sweetlab.sweetspot.adapter.CollectionAdapter;
 import com.sweetlab.sweetspot.adapter.CollectionItemClick;
+import com.sweetlab.sweetspot.loader.CollectionItem;
+import com.sweetlab.sweetspot.loader.CollectionLoader;
 import com.sweetlab.sweetspot.loader.LoaderConstants;
-import com.sweetlab.sweetspot.loader.LocalImageLoader;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
 import com.sweetlab.sweetspot.view.AspectImageView;
 import com.sweetlab.sweetspot.view.ViewHelper;
 
+import java.util.List;
+
 import rx.Observer;
 
-public class CollectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+/**
+ * Present a collection of photos with date dividers in a mondrian style.
+ */
+public class CollectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<CollectionItem>> {
+    /**
+     * Set two columns.
+     */
     private static final int SPAN_COUNT = 2;
+
+    /**
+     * Vertical scrolling.
+     */
     private static final int ORIENTATION = StaggeredGridLayoutManager.VERTICAL;
 
+    /**
+     * The recycler view.
+     */
     private RecyclerView mRecyclerView;
-    private StaggeredGridLayoutManager mLayoutManager;
-    private CollectionAdapter mImageAdapter;
 
     @Nullable
     @Override
@@ -41,11 +54,10 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
         mRecyclerView = (RecyclerView) root.findViewById(R.id.photo_collection_recycler_view);
         mRecyclerView.setHasFixedSize(true);
 
-        mLayoutManager = new StaggeredGridLayoutManager(SPAN_COUNT, ORIENTATION);
-        mLayoutManager.setGapStrategy(
+        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(SPAN_COUNT, ORIENTATION);
+        layoutManager.setGapStrategy(
                 StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
-
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setLayoutManager(layoutManager);
 
         return root;
     }
@@ -53,28 +65,31 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(LoaderConstants.LOCAL_IMAGE, null, this);
+        getLoaderManager().initLoader(LoaderConstants.PHOTO_COLLECTION, null, this);
     }
 
     @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new LocalImageLoader(getActivity().getApplicationContext());
+    public Loader<List<CollectionItem>> onCreateLoader(int id, Bundle args) {
+        return new CollectionLoader(getActivity().getApplicationContext());
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        mImageAdapter = new CollectionAdapter(cursor);
-        mImageAdapter.registerForClicks(new PhotoClickObserver());
-        mRecyclerView.setAdapter(mImageAdapter);
+    public void onLoadFinished(Loader<List<CollectionItem>> loader, List<CollectionItem> list) {
+        CollectionAdapter adapter = new CollectionAdapter(list);
+        adapter.subscribeForClicks(new PhotoClickObserver());
+        mRecyclerView.setAdapter(adapter);
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
+    public void onLoaderReset(Loader<List<CollectionItem>> loader) {
     }
 
     /**
-     * Photo click observer.
+     * TODO change the single photo fragment to a viewpager.
+     *
+     * Photo click observer. This will start a fragment showing the photo in fullscreen.
+     * The bitmap from the collection item will be transferred to the photo fragment
+     * to get a instant transaction feeling.
      */
     private class PhotoClickObserver implements Observer<CollectionItemClick> {
         @Override

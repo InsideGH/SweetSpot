@@ -5,6 +5,7 @@ import android.content.CursorLoader;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+@SuppressWarnings("unused")
 public class LocalImageLoader extends CursorLoader {
     private static final Uri INTERNAL_URI = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 

@@ -1,130 +1,135 @@
 package com.sweetlab.sweetspot.adapter;
 
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.squareup.picasso.RequestCreator;
-import com.squareup.picasso.Transformation;
 import com.sweetlab.diskpicasso.DiskPicasso;
-import com.sweetlab.diskpicasso.SinglePicasso;
 import com.sweetlab.sweetspot.R;
+import com.sweetlab.sweetspot.loader.CollectionItem;
+import com.sweetlab.sweetspot.photometa.DateMeta;
 import com.sweetlab.sweetspot.photometa.PhotoMeta;
-import com.sweetlab.sweetspot.photometa.MetaHelper;
 import com.sweetlab.sweetspot.view.AspectImageView;
 
-import java.io.File;
+import java.util.List;
 
 import rx.Observer;
 import rx.subjects.PublishSubject;
 
-public class CollectionAdapter extends RecyclerView.Adapter<CollectionViewHolder> {
+/**
+ * TODO place exceptions behind debug flag.
+ * <p/>
+ * Adapter holding data about photos and date dividers.
+ * <p/>
+ * Clients can register for item clicks using a RxJava observer.
+ */
+public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     /**
-     * Staggered layout manager seems to change the view size to span
-     * all columns at a later stage, after it has received it's content (bitmap).
-     * <p/>
-     * In other words, the measurements are wrong.
+     * The decoding quality.
      */
-    private static final boolean USE_BANNER_FOR_NEW_DAYS = false;
-
     private static final Bitmap.Config JPEG_CONFIG = Bitmap.Config.RGB_565;
-    private final Cursor mCursor;
-    private final SparseArray<String> mDateArray;
+
+    /**
+     * The list of items in the collection. Can be either photos or date dividers.
+     */
+    private final List<CollectionItem> mCollectionList;
+
+    /**
+     * Client can subscribe for item clicks.
+     */
     private PublishSubject<CollectionItemClick> mClickSubject;
 
     /**
      * Constructor.
      *
-     * @param cursor Cursor.
+     * @param list List of items.
      */
-    public CollectionAdapter(Cursor cursor) {
-        mCursor = cursor;
+    public CollectionAdapter(List<CollectionItem> list) {
+        mCollectionList = list;
         mClickSubject = PublishSubject.create();
-
-        mDateArray = new SparseArray<>();
-
-        // TODO use rxjava.
-        if (cursor != null) {
-            int count = cursor.getCount();
-            if (count > 0) {
-                cursor.moveToFirst();
-                int prevDay = -1;
-                for (int i = 0; i < count; i++) {
-                    PhotoMeta photoMeta = MetaHelper.createPhotoMeta(cursor);
-                    cursor.moveToNext();
-
-                    int day = photoMeta.getDay();
-                    if (prevDay != day) {
-                        prevDay = day;
-                        mDateArray.put(i, photoMeta.getReadableDateTaken());
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Register for photo clicks.
-     *
-     * @param observer Observer.
-     */
-    public void registerForClicks(Observer<? super CollectionItemClick> observer) {
-        mClickSubject.subscribe(observer);
     }
 
     @Override
-    public CollectionViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View photo = LayoutInflater.from(parent.getContext()).inflate(R.layout.photo_collection_item, parent, false);
-        return new CollectionViewHolder(photo);
+    public int getItemViewType(int position) {
+        return mCollectionList.get(position).getType();
     }
 
     @Override
-    public void onBindViewHolder(CollectionViewHolder holder, int position) {
-        mCursor.moveToPosition(position);
-        PhotoMeta photoMeta = MetaHelper.createPhotoMeta(mCursor);
-
-        String isNewDate = mDateArray.get(position);
-        if (isNewDate != null) {
-            holder.getDateView().setText(isNewDate);
-            holder.getDateView().setVisibility(View.VISIBLE);
-        } else {
-            holder.getDateView().setVisibility(View.GONE);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        switch (viewType) {
+            case CollectionItem.TYPE_PHOTO:
+                View photoView = LayoutInflater.from(parent.getContext()).inflate(R.layout.photo_collection_item, parent, false);
+                return new PhotoViewHolder(photoView);
+            case CollectionItem.TYPE_DATE:
+                View dateView = LayoutInflater.from(parent.getContext()).inflate(R.layout.photo_collection_date, parent, false);
+                return new DateViewHolder(dateView);
+            default:
+                throw new RuntimeException("wtf in onCreateViewHolder");
         }
+    }
 
-        boolean debug = false;
-        if (USE_BANNER_FOR_NEW_DAYS) {
-            StaggeredGridLayoutManager.LayoutParams layoutParams = (StaggeredGridLayoutManager.LayoutParams) holder.itemView.getLayoutParams();
-            if (isNewDate != null) {
-                debug = true;
-                layoutParams.setFullSpan(true);
-            } else {
-                layoutParams.setFullSpan(false);
-            }
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        CollectionItem collectionItem = mCollectionList.get(position);
+        switch (collectionItem.getType()) {
+
+            case CollectionItem.TYPE_PHOTO:
+                PhotoMeta photoMeta = collectionItem.getObject(PhotoMeta.class);
+                PhotoViewHolder photoHolder = (PhotoViewHolder) holder;
+
+                setClickListener(position, photoMeta, photoHolder);
+                configurePhotoView(photoMeta, photoHolder);
+                loadPhotoView(photoMeta, photoHolder);
+                break;
+
+            case CollectionItem.TYPE_DATE:
+                DateMeta dateMeta = collectionItem.getObject(DateMeta.class);
+                DateViewHolder dateHolder = (DateViewHolder) holder;
+                configureDateView(dateMeta, dateHolder);
+                break;
+
+            default:
+                throw new RuntimeException("wtf in onBindViewHolder");
         }
-
-        setClickListener(position, photoMeta, holder);
-        setViewAspect(photoMeta, holder);
-        loadPhoto(photoMeta, holder, debug);
     }
 
     @Override
     public int getItemCount() {
-        return mCursor.getCount();
+        return mCollectionList.size();
     }
 
     /**
-     * Set aspect ration to image view.
+     * Subscribe for photo clicks.
+     *
+     * @param observer Observer.
+     */
+    public void subscribeForClicks(Observer<? super CollectionItemClick> observer) {
+        mClickSubject.subscribe(observer);
+    }
+
+    /**
+     * Configure the date TextView.
+     *
+     * @param dateMeta   Meta data.
+     * @param dateHolder Holder of the date TextView.
+     */
+    private void configureDateView(DateMeta dateMeta, DateViewHolder dateHolder) {
+        dateHolder.getDateTextView().setText(dateMeta.toString());
+        StaggeredGridLayoutManager.LayoutParams layoutParams = (StaggeredGridLayoutManager.LayoutParams) dateHolder.itemView.getLayoutParams();
+        layoutParams.setFullSpan(true);
+    }
+
+    /**
+     * Configure the image view.
      *
      * @param photoMeta Photo meta data.
      * @param holder    Holder with view.
      */
-    private void setViewAspect(PhotoMeta photoMeta, CollectionViewHolder holder) {
+    private void configurePhotoView(PhotoMeta photoMeta, PhotoViewHolder holder) {
         holder.getImageView().setAspectRatio(photoMeta.getAspectRatio());
     }
 
@@ -134,33 +139,18 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionViewHolder
      * @param photo  The meta info.
      * @param holder The holder.
      */
-    private void loadPhoto(final PhotoMeta photo, CollectionViewHolder holder, boolean debug) {
-        AspectImageView imageView = holder.getImageView();
+    private void loadPhotoView(final PhotoMeta photo, PhotoViewHolder holder) {
+        final AspectImageView imageView = holder.getImageView();
         final int width = imageView.getMeasuredWidth();
         final int height = imageView.getMeasuredHeight();
 
-        if (debug) {
-            SinglePicasso.getPicasso().load(new File(photo.getUrl())).fit().centerInside().transform(new Transformation() {
-                @Override
-                public Bitmap transform(Bitmap source) {
-                    Log.d("Peter100", "LocalImageAdapter.transform " + source.getWidth() + " " + source.getHeight());
-                    return source;
-                }
+        DiskPicasso instance = DiskPicasso.getInstance();
+        RequestCreator cacheLoader = instance.getCachedLoader(photo.getUrl(), width, height, JPEG_CONFIG);
 
-                @Override
-                public String key() {
-                    return photo.getUrl();
-                }
-            }).into(imageView);
+        if (cacheLoader != null) {
+            cacheLoader.into(imageView);
         } else {
-            DiskPicasso instance = DiskPicasso.getInstance();
-            RequestCreator cacheLoader = instance.getCachedLoader(photo.getUrl(), width, height, JPEG_CONFIG);
-
-            if (cacheLoader != null) {
-                cacheLoader.into(imageView);
-            } else {
-                instance.getLoader(photo.getUrl(), JPEG_CONFIG).fit().centerInside().into(imageView);
-            }
+            instance.getLoader(photo.getUrl(), JPEG_CONFIG).fit().centerInside().into(imageView);
         }
     }
 
@@ -171,8 +161,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionViewHolder
      * @param photoMeta       Photo meta data.
      * @param holder          Holder with view.
      */
-    private void setClickListener(int adapterPosition, PhotoMeta photoMeta, CollectionViewHolder holder) {
-        View.OnClickListener listener;
+    private void setClickListener(int adapterPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
         holder.getImageView().setOnClickListener(new ViewOnClickListener(adapterPosition, photoMeta, holder));
     }
 
@@ -182,9 +171,9 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionViewHolder
     private class ViewOnClickListener implements View.OnClickListener {
         private final int mAdapterPosition;
         private final PhotoMeta mPhotoMeta;
-        private final CollectionViewHolder mHolder;
+        private final PhotoViewHolder mHolder;
 
-        public ViewOnClickListener(int adapterPosition, PhotoMeta photoMeta, CollectionViewHolder holder) {
+        public ViewOnClickListener(int adapterPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
             mAdapterPosition = adapterPosition;
             mPhotoMeta = photoMeta;
             mHolder = holder;

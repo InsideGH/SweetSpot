@@ -16,10 +16,24 @@ import com.sweetlab.sweetspot.photometa.PhotoMeta;
 
 import java.io.File;
 
+/**
+ * A fragment just showing a single photo.
+ */
 public class PhotoFragment extends Fragment {
 
+    /**
+     * Image view with the image.
+     */
     private ImageView mImageView;
+
+    /**
+     * Photo meta data.
+     */
     private PhotoMeta mPhotoMeta;
+
+    /**
+     * Preload bitmap initially set.
+     */
     private Bitmap mPreloadBitmap;
 
     @Nullable
@@ -40,6 +54,12 @@ public class PhotoFragment extends Fragment {
         loadPhoto();
     }
 
+    /**
+     * If preload bitmap exists, load that first. Then load the real image.
+     * <p/>
+     * Note, disk caching is not used on purpose.
+     * No placeholder tells Picasso to not clear the ImageView prior to loading.
+     */
     private void loadPhoto() {
         if (mPreloadBitmap != null) {
             mImageView.setImageBitmap(mPreloadBitmap);

@@ -11,16 +11,6 @@
         android:background="@color/collection_item_placeholder_color"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/date"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/collection_item_date_color"
-            android:gravity="center"
-            android:paddingBottom="@dimen/collection_item_text_padding"
-            android:paddingTop="@dimen/collection_item_text_padding"
-            android:visibility="gone" />
-
         <com.sweetlab.sweetspot.view.AspectImageView
             android:id="@+id/photo_collection_imageview"
             android:layout_width="match_parent"

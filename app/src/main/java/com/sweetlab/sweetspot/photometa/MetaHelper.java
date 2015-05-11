@@ -3,10 +3,13 @@ package com.sweetlab.sweetspot.photometa;
 import android.database.Cursor;
 import android.provider.MediaStore;
 
+/**
+ * Helper for meta related information.
+ */
 public class MetaHelper {
 
     /**
-     * Create photo meta data.
+     * Create photo meta data from a correctly positioned cursor.
      *
      * @param cursor Correctly positioned cursor.
      * @return Local photo meta data.

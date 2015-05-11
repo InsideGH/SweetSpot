@@ -1,5 +1,11 @@
 package com.sweetlab.sweetspot.loader;
 
+/**
+ * Loader constants.
+ */
 public class LoaderConstants {
-    public static final int LOCAL_IMAGE = 0;
+    /**
+     * Loader id for loading photo collection.
+     */
+    public static final int PHOTO_COLLECTION = 0;
 }

@@ -4,6 +4,9 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
+/**
+ * Aspect ratio configurable ImageView.
+ */
 public class AspectImageView extends ImageView {
 
     private float mBitmapRatio;
@@ -28,7 +31,7 @@ public class AspectImageView extends ImageView {
         if (w == 0 || h == 0) {
             if (w == 0) {
                 w = (int) (h / mBitmapRatio);
-            } else if (h == 0) {
+            } else {
                 h = (int) (w / mBitmapRatio);
             }
         }
