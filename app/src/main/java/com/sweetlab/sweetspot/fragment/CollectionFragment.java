@@ -107,6 +107,7 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
 
             setExitTransition(new Explode());
             photoFragment.setReturnTransition(new Fade());
+            photoFragment.setEnterTransition(new Fade());
 
             Bundle arguments = new Bundle();
             arguments.putSerializable(BundleKeys.PHOTO_META_KEY, collectionItemClick.getPhotoMeta());
