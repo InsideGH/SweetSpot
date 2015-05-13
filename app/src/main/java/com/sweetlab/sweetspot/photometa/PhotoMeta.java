@@ -61,6 +61,10 @@ public class PhotoMeta implements Serializable {
         return (mOrientation == 0 || mOrientation == 180);
     }
 
+    public boolean isPortrait() {
+        return (mOrientation == 90 || mOrientation == 270);
+    }
+
     public float getAspectRatio() {
         return mAspectRatio;
     }
@@ -87,6 +91,6 @@ public class PhotoMeta implements Serializable {
 
     @Override
     public String toString() {
-        return "w " + mWidth + " h = " + mHeight + " orientation = " + mOrientation + " url = " + mUrl;
+        return mUrl + " w " + mWidth + " h = " + mHeight;
     }
 }

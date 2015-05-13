@@ -3,12 +3,14 @@ package com.sweetlab.sweetspot.adapter;
 import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.squareup.picasso.RequestCreator;
+import com.sweetlab.diskpicasso.CacheEntry;
 import com.sweetlab.diskpicasso.DiskPicasso;
+import com.sweetlab.diskpicasso.SinglePicasso;
 import com.sweetlab.sweetspot.R;
 import com.sweetlab.sweetspot.loader.CollectionItem;
 import com.sweetlab.sweetspot.photometa.DateMeta;
@@ -39,18 +41,46 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private final List<CollectionItem> mCollectionList;
 
     /**
+     * View orientation.
+     */
+    private final int mViewOrientation;
+
+    /**
+     * View span.
+     */
+    private final int mViewSpan;
+
+    /**
      * Client can subscribe for item clicks.
      */
     private PublishSubject<CollectionItemClick> mClickSubject;
+
+    /**
+     * The view that this adapter feeds.
+     */
+    private RecyclerView mRecyclerView;
+
+    /**
+     * Lazy loaded bounded layout.
+     */
+    private BoundedLayout mBoundedLayout;
 
     /**
      * Constructor.
      *
      * @param list List of items.
      */
-    public CollectionAdapter(List<CollectionItem> list) {
+    public CollectionAdapter(List<CollectionItem> list, int orientation, int span) {
+        mViewOrientation = orientation;
+        mViewSpan = span;
         mCollectionList = list;
         mClickSubject = PublishSubject.create();
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        mRecyclerView = recyclerView;
     }
 
     @Override
@@ -141,16 +171,77 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      */
     private void loadPhotoView(final PhotoMeta photo, PhotoViewHolder holder) {
         final AspectImageView imageView = holder.getImageView();
-        final int width = imageView.getMeasuredWidth();
-        final int height = imageView.getMeasuredHeight();
 
-        DiskPicasso instance = DiskPicasso.getInstance();
-        RequestCreator cacheLoader = instance.getCachedLoader(photo.getUrl(), width, height, JPEG_CONFIG);
+        if (mBoundedLayout == null) {
+            if (mViewOrientation == StaggeredGridLayoutManager.VERTICAL) {
+                mBoundedLayout = new BoundedLayout(BoundedLayout.BoundedDirection.HORIZONTAL, mRecyclerView.getMeasuredWidth() / mViewSpan);
+            } else {
+                mBoundedLayout = new BoundedLayout(BoundedLayout.BoundedDirection.VERTICAL, mRecyclerView.getMeasuredHeight());
+            }
+        }
 
-        if (cacheLoader != null) {
-            cacheLoader.into(imageView);
+        final DiskPicasso instance = DiskPicasso.getInstance();
+        List<CacheEntry> cacheEntries = instance.getCacheEntries(photo.getUrl());
+
+        final int resizeX = calcPicassoResizeX(photo);
+        final int resizeY = calcPicassoResizeY(photo);
+        CacheEntry match = DiskPicasso.findMatch(cacheEntries, resizeX, resizeY, JPEG_CONFIG);
+        if (match != null) {
+            Log.d("Peter100", "CollectionAdapter.loadPhotoView cached " + match);
+            SinglePicasso.getPicasso().load(match.getCacheFile()).into(imageView);
         } else {
-            instance.getLoader(photo.getUrl(), JPEG_CONFIG).fit().centerInside().into(imageView);
+            Log.d("Peter100", "CollectionAdapter.loadPhotoView not cached " + photo);
+            instance.loadWithCacheWrite(photo.getUrl(), JPEG_CONFIG).resize(resizeX, resizeY).into(imageView);
+        }
+    }
+
+    /**
+     * Calculate the resize value to be used for picasso based on boundaries and photo rotation.
+     *
+     * @param photo The photo meta data.
+     * @return The horizontal (x) resize value.
+     */
+    private int calcPicassoResizeX(PhotoMeta photo) {
+        switch (mBoundedLayout.getBoundedDirection()) {
+            case HORIZONTAL:
+                if (photo.isPortrait()) {
+                    return 0;
+                } else {
+                    return mBoundedLayout.getBoundedValue();
+                }
+            case VERTICAL:
+                if (photo.isPortrait()) {
+                    return mBoundedLayout.getBoundedValue();
+                } else {
+                    return 0;
+                }
+            default:
+                throw new RuntimeException("wtf");
+        }
+    }
+
+    /**
+     * Calculate the resize value to be used for picasso based on boundaries and photo rotation.
+     *
+     * @param photo The photo meta data.
+     * @return The vertical (y) resize value.
+     */
+    private int calcPicassoResizeY(PhotoMeta photo) {
+        switch (mBoundedLayout.getBoundedDirection()) {
+            case HORIZONTAL:
+                if (photo.isPortrait()) {
+                    return mBoundedLayout.getBoundedValue();
+                } else {
+                    return 0;
+                }
+            case VERTICAL:
+                if (photo.isPortrait()) {
+                    return 0;
+                } else {
+                    return mBoundedLayout.getBoundedValue();
+                }
+            default:
+                throw new RuntimeException("wtf");
         }
     }
 

@@ -10,7 +10,7 @@ public class DateMeta {
     private final String mDate;
 
     /**
-     * Constructor. Use toString to get date.
+     * Constructor. Use toString to getExact date.
      *
      * @param date The readable date.
      */

@@ -75,7 +75,7 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public void onLoadFinished(Loader<List<CollectionItem>> loader, List<CollectionItem> list) {
-        CollectionAdapter adapter = new CollectionAdapter(list);
+        CollectionAdapter adapter = new CollectionAdapter(list, ORIENTATION, SPAN_COUNT);
         adapter.subscribeForClicks(new PhotoClickObserver());
         mRecyclerView.setAdapter(adapter);
     }

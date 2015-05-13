@@ -17,6 +17,7 @@ public class CacheEntry {
     private final int mByteSize;
     private final long mIdentity;
     private final String mSourceFilePath;
+    private boolean mIsLandscape;
 
     /**
      * Helper method to calculate unique identity given parameters.
@@ -49,6 +50,7 @@ public class CacheEntry {
         mConfig = cachedConfig;
         mByteSize = cachedByteSize;
         mIdentity = calcIdentity(originalPath, cachedWidth, cachedHeight, cachedConfig);
+        mIsLandscape = mWidth >= mHeight;
     }
 
     /**
@@ -112,5 +114,19 @@ public class CacheEntry {
      */
     public long getIdentity() {
         return mIdentity;
+    }
+
+    /**
+     * Get if the cached dimensions are landscape. Equal width and height return true as well.
+     *
+     * @return True if so.
+     */
+    public boolean isLandscape() {
+        return mIsLandscape;
+    }
+
+    @Override
+    public String toString() {
+        return mSourceFilePath + " w = " + getWidth() + " h = " + getHeight() + " config = " + getConfig();
     }
 }
