@@ -1,13 +1,7 @@
 <resources>
-
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="@android:style/Theme.Holo.Light">
-        <item name="android:actionBarStyle">@style/SweetSpotActionBar</item>
+    <style name="AppTheme" parent="@android:style/Theme.Material">
         <item name="android:windowActivityTransitions">true</item>
         <item name="android:windowContentTransitions">true</item>
-    </style>
-
-    <style name="SweetSpotActionBar" parent="@android:style/Widget.Holo.Light.ActionBar">
-        <item name="android:background">@color/actionbar_color</item>
     </style>
 </resources>
