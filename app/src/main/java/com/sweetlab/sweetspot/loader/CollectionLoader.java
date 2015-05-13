@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import com.sweetlab.sweetspot.modifiers.CollectionModifier;
 import com.sweetlab.sweetspot.photometa.MetaHelper;
 import com.sweetlab.sweetspot.photometa.PhotoMeta;
 
@@ -58,12 +59,19 @@ public class CollectionLoader extends AsyncTaskLoader<List<CollectionItem>> {
     private List<CollectionItem> mDataList;
 
     /**
+     * RxJava collection modifier. The modifier will be passed the whole photo collection.
+     */
+    private final CollectionModifier mModifier;
+
+    /**
      * TODO : fix content change listener.
      *
      * @param context preferably Android application context.
+     * @param modifier
      */
-    public CollectionLoader(Context context) {
+    public CollectionLoader(Context context, CollectionModifier modifier) {
         super(context);
+        mModifier = modifier;
     }
 
     @Override
@@ -73,7 +81,7 @@ public class CollectionLoader extends AsyncTaskLoader<List<CollectionItem>> {
             try {
                 final List<CollectionItem> list = new ArrayList<>();
                 List<CollectionItem> photoList = createPhotoList(cursor);
-                Observable.from(photoList).flatMap(new DayDateInsert()).subscribe(new Action1<CollectionItem>() {
+                Observable.from(photoList).flatMap(mModifier).subscribe(new Action1<CollectionItem>() {
                     @Override
                     public void call(CollectionItem collectionItem) {
                         list.add(collectionItem);

@@ -1,25 +1,39 @@
 package com.sweetlab.sweetspot;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.sweetlab.sweetspot.fragment.CollectionFragment;
+import com.sweetlab.sweetspot.modifiers.ModifierType;
 
 public class MainActivity extends Activity {
+    /**
+     * Set two columns.
+     */
+    private static final int SPAN = 2;
+
+    /**
+     * Vertical scrolling.
+     */
+    private static final int ORIENTATION = StaggeredGridLayoutManager.VERTICAL;
+
+    /**
+     * Insert day dividers.
+     */
+    private static final ModifierType DAY_DIVIDERS = ModifierType.DAY;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
-            FragmentTransaction transaction = getFragmentManager().beginTransaction();
-            Fragment photoCollection = new CollectionFragment();
-            transaction.replace(R.id.main_activity_container, photoCollection, CollectionFragment.class.getSimpleName());
-            transaction.commit();
-        }
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        CollectionFragment photoCollection = CollectionFragment.createInstance(SPAN, ORIENTATION, DAY_DIVIDERS);
+        transaction.replace(R.id.main_activity_container, photoCollection, CollectionFragment.class.getSimpleName());
+        transaction.commit();
     }
 
     @Override

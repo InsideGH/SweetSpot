@@ -21,6 +21,8 @@ import com.sweetlab.sweetspot.loader.CollectionItem;
 import com.sweetlab.sweetspot.loader.CollectionLoader;
 import com.sweetlab.sweetspot.loader.LoaderConstants;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
+import com.sweetlab.sweetspot.modifiers.ModifierFactory;
+import com.sweetlab.sweetspot.modifiers.ModifierType;
 import com.sweetlab.sweetspot.view.AspectImageView;
 import com.sweetlab.sweetspot.view.ViewHelper;
 
@@ -35,17 +37,50 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
     /**
      * Set two columns.
      */
-    private static final int SPAN_COUNT = 2;
+    private static final int DEFAULT_SPAN = 2;
 
     /**
      * Vertical scrolling.
      */
-    private static final int ORIENTATION = StaggeredGridLayoutManager.VERTICAL;
+    private static final int DEFAULT_ORIENTATION = StaggeredGridLayoutManager.VERTICAL;
 
     /**
      * The recycler view.
      */
     private RecyclerView mRecyclerView;
+
+    /**
+     * The collection modifier that is passed to this fragment.
+     */
+    private ModifierType mModifierType;
+
+    /**
+     * The span of the recycler view.
+     */
+    private int mSpan;
+    /**
+     * The orientation of the recycler view.
+     */
+    private int mOrientation;
+
+    /**
+     * Create a collection fragment.
+     *
+     * @param span         The span of the recycler view.
+     * @param orientation  The orientation of the recycler view.
+     * @param modifierType The collection modifier.
+     * @return A collection fragment.
+     */
+    public static CollectionFragment createInstance(int span, int orientation, ModifierType modifierType) {
+        Bundle arguments = new Bundle();
+        arguments.putInt(BundleKeys.COLLECTION_SPAN_COUNT, span);
+        arguments.putInt(BundleKeys.COLLECTION_ORIENTATION, orientation);
+        arguments.putSerializable(BundleKeys.COLLECTION_MODIFIER, modifierType);
+
+        CollectionFragment collectionFragment = new CollectionFragment();
+        collectionFragment.setArguments(arguments);
+        return collectionFragment;
+    }
 
     @Nullable
     @Override
@@ -54,7 +89,12 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
         mRecyclerView = (RecyclerView) root.findViewById(R.id.photo_collection_recycler_view);
         mRecyclerView.setHasFixedSize(true);
 
-        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(SPAN_COUNT, ORIENTATION);
+        Bundle arguments = getArguments();
+        mSpan = arguments.getInt(BundleKeys.COLLECTION_SPAN_COUNT, DEFAULT_SPAN);
+        mModifierType = (ModifierType) arguments.getSerializable(BundleKeys.COLLECTION_MODIFIER);
+        mOrientation = arguments.getInt(BundleKeys.COLLECTION_ORIENTATION, DEFAULT_ORIENTATION);
+
+        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(mSpan, mOrientation);
         layoutManager.setGapStrategy(
                 StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
         mRecyclerView.setLayoutManager(layoutManager);
@@ -70,12 +110,12 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public Loader<List<CollectionItem>> onCreateLoader(int id, Bundle args) {
-        return new CollectionLoader(getActivity().getApplicationContext());
+        return new CollectionLoader(getActivity().getApplicationContext(), ModifierFactory.create(mModifierType));
     }
 
     @Override
     public void onLoadFinished(Loader<List<CollectionItem>> loader, List<CollectionItem> list) {
-        CollectionAdapter adapter = new CollectionAdapter(list, ORIENTATION, SPAN_COUNT);
+        CollectionAdapter adapter = new CollectionAdapter(list, mOrientation, mSpan);
         adapter.subscribeForClicks(new PhotoClickObserver());
         mRecyclerView.setAdapter(adapter);
     }
@@ -86,7 +126,7 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
 
     /**
      * TODO change the single photo fragment to a viewpager.
-     *
+     * <p/>
      * Photo click observer. This will start a fragment showing the photo in fullscreen.
      * The bitmap from the collection item will be transferred to the photo fragment
      * to get a instant transaction feeling.
