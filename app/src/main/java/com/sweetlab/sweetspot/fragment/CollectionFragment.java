@@ -1,5 +1,6 @@
 package com.sweetlab.sweetspot.fragment;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager;
@@ -64,6 +65,11 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
     private int mOrientation;
 
     /**
+     * Fragment listener.
+     */
+    private CollectionFragmentListener mFragmentListener;
+
+    /**
      * Create a collection fragment.
      *
      * @param span         The span of the recycler view.
@@ -100,6 +106,17 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
         mRecyclerView.setLayoutManager(layoutManager);
 
         return root;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mFragmentListener = (CollectionFragmentListener) activity;
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            throw new ClassCastException("Activity " + activity.toString() + " must implement " + CollectionFragmentListener.class.getSimpleName());
+        }
     }
 
     @Override
@@ -142,6 +159,8 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
 
         @Override
         public void onNext(CollectionItemClick collectionItemClick) {
+            mFragmentListener.onItemClicked();
+
             PhotoFragment photoFragment = new PhotoFragment();
             AspectImageView imageView = collectionItemClick.getPhotoHolder().getImageView();
 

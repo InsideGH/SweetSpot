@@ -4,13 +4,15 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.sweetlab.sweetspot.fragment.CollectionFragment;
+import com.sweetlab.sweetspot.fragment.CollectionFragmentListener;
 import com.sweetlab.sweetspot.modifiers.ModifierType;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements CollectionFragmentListener{
     /**
      * Set two columns.
      */
@@ -54,5 +56,10 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onItemClicked() {
+        Log.d("Peter100", "MainActivity.onItemClicked");
     }
 }
