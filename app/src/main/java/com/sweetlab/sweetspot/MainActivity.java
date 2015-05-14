@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import com.sweetlab.sweetspot.adapter.CollectionItemClick;
 import com.sweetlab.sweetspot.fragment.CollectionFragment;
 import com.sweetlab.sweetspot.fragment.CollectionFragmentListener;
+import com.sweetlab.sweetspot.fragment.FragmentTags;
 import com.sweetlab.sweetspot.fragment.PhotoFragment;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
 import com.sweetlab.sweetspot.modifiers.ModifierType;
@@ -45,7 +46,7 @@ public class MainActivity extends Activity implements CollectionFragmentListener
         if (fragment == null) {
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
             CollectionFragment photoCollection = CollectionFragment.createInstance(SPAN, ORIENTATION, DAY_DIVIDERS);
-            transaction.add(R.id.main_activity_container, photoCollection, CollectionFragment.class.getSimpleName());
+            transaction.add(R.id.main_activity_container, photoCollection, FragmentTags.MAIN_COLLECTION);
             transaction.commit();
         }
     }
@@ -89,8 +90,8 @@ public class MainActivity extends Activity implements CollectionFragmentListener
         photoFragment.setArguments(arguments);
 
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.main_activity_container, photoFragment);
-        transaction.addToBackStack(PhotoFragment.class.getSimpleName());
+        transaction.replace(R.id.main_activity_container, photoFragment, FragmentTags.SINGLE_PHOTO);
+        transaction.addToBackStack(FragmentTags.SINGLE_PHOTO);
         transaction.commit();
     }
 }
