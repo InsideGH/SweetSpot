@@ -2,15 +2,12 @@ package com.sweetlab.sweetspot.fragment;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.app.LoaderManager;
 import android.content.Loader;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.transition.Explode;
-import android.transition.Fade;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,8 +21,6 @@ import com.sweetlab.sweetspot.loader.LoaderConstants;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
 import com.sweetlab.sweetspot.modifiers.ModifierFactory;
 import com.sweetlab.sweetspot.modifiers.ModifierType;
-import com.sweetlab.sweetspot.view.AspectImageView;
-import com.sweetlab.sweetspot.view.ViewHelper;
 
 import java.util.List;
 
@@ -120,6 +115,12 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
     }
 
     @Override
+    public void onDetach() {
+        super.onDetach();
+        mFragmentListener = null;
+    }
+
+    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         getLoaderManager().initLoader(LoaderConstants.PHOTO_COLLECTION, null, this);
@@ -159,24 +160,7 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
 
         @Override
         public void onNext(CollectionItemClick collectionItemClick) {
-            mFragmentListener.onItemClicked();
-
-            PhotoFragment photoFragment = new PhotoFragment();
-            AspectImageView imageView = collectionItemClick.getPhotoHolder().getImageView();
-
-            setExitTransition(new Explode());
-            photoFragment.setReturnTransition(new Fade());
-            photoFragment.setEnterTransition(new Fade());
-
-            Bundle arguments = new Bundle();
-            arguments.putSerializable(BundleKeys.PHOTO_META_KEY, collectionItemClick.getPhotoMeta());
-            arguments.putParcelable(BundleKeys.BITMAP_KEY, ViewHelper.copyBitmap(imageView, false));
-            photoFragment.setArguments(arguments);
-
-            FragmentTransaction transaction = getActivity().getFragmentManager().beginTransaction();
-            transaction.replace(R.id.main_activity_container, photoFragment);
-            transaction.addToBackStack(PhotoFragment.class.getSimpleName());
-            transaction.commit();
+            mFragmentListener.onItemClicked(collectionItemClick);
         }
     }
 }
