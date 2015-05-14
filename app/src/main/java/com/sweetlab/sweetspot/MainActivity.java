@@ -6,21 +6,22 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.transition.Explode;
-import android.transition.Fade;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.sweetlab.sweetspot.adapter.CollectionItemClick;
-import com.sweetlab.sweetspot.fragment.CollectionFragment;
 import com.sweetlab.sweetspot.fragment.CollectionFragmentListener;
 import com.sweetlab.sweetspot.fragment.FragmentTags;
-import com.sweetlab.sweetspot.fragment.PhotoFragment;
+import com.sweetlab.sweetspot.fragment.MultiPhotoFragment;
+import com.sweetlab.sweetspot.fragment.RecyclerViewFragment;
+import com.sweetlab.sweetspot.loader.LoaderConstants;
 import com.sweetlab.sweetspot.modifiers.ModifierType;
-import com.sweetlab.sweetspot.view.AspectImageView;
-import com.sweetlab.sweetspot.view.ViewHelper;
 
-public class MainActivity extends FragmentActivity implements CollectionFragmentListener{
+/**
+ * Will show a grid of photos with day divider.
+ */
+public class MainActivity extends FragmentActivity implements CollectionFragmentListener {
     /**
      * Set two columns.
      */
@@ -44,8 +45,8 @@ public class MainActivity extends FragmentActivity implements CollectionFragment
         Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.main_activity_container);
         if (fragment == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            CollectionFragment photoCollection = CollectionFragment.createInstance(SPAN, ORIENTATION, DAY_DIVIDERS);
-            transaction.add(R.id.main_activity_container, photoCollection, FragmentTags.MAIN_COLLECTION);
+            RecyclerViewFragment photoCollection = RecyclerViewFragment.createInstance(SPAN, ORIENTATION, DAY_DIVIDERS, LoaderConstants.MAIN_GRID);
+            transaction.add(R.id.main_activity_container, photoCollection, FragmentTags.MAIN_GRID_TAG);
             transaction.commit();
         }
     }
@@ -74,18 +75,19 @@ public class MainActivity extends FragmentActivity implements CollectionFragment
     public void onItemClicked(CollectionItemClick collectionItemClick) {
         Log.d("Peter100", "MainActivity.onItemClicked");
 
-        AspectImageView imageView = collectionItemClick.getPhotoHolder().getImageView();
-        PhotoFragment photoFragment = PhotoFragment.createInstance(collectionItemClick.getPhotoMeta(), ViewHelper.copyBitmap(imageView, false));
+        Fragment fragment = MultiPhotoFragment.createInstance();
+//        AspectImageView imageView = collectionItemClick.getPhotoHolder().getImageView();
+//        PhotoFragment fragment = PhotoFragment.createInstance(collectionItemClick.getPhotoMeta(), ViewHelper.copyBitmap(imageView, false), false, false);
+//        fragment.setReturnTransition(new Fade());
+//        fragment.setEnterTransition(new Fade());
 
         Fragment current = getSupportFragmentManager().findFragmentById(R.id.main_activity_container);
 
         current.setExitTransition(new Explode());
-        photoFragment.setReturnTransition(new Fade());
-        photoFragment.setEnterTransition(new Fade());
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.main_activity_container, photoFragment, FragmentTags.SINGLE_PHOTO);
-        transaction.addToBackStack(FragmentTags.SINGLE_PHOTO);
+        transaction.replace(R.id.main_activity_container, fragment, FragmentTags.MULTI_PHOTO_TAG);
+        transaction.addToBackStack(null);
         transaction.commit();
     }
 }

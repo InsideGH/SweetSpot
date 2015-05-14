@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.squareup.picasso.RequestCreator;
 import com.sweetlab.diskpicasso.SinglePicasso;
 import com.sweetlab.sweetspot.R;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
@@ -37,17 +38,29 @@ public class PhotoFragment extends Fragment {
     private Bitmap mPreloadBitmap;
 
     /**
+     * If placeholder should be used when loading with picasso.
+     */
+    private boolean mUsePlaceHolder;
+
+    /**
+     * If fade should be used when loading with picasso.
+     */
+    private boolean mUseFade;
+
+    /**
      * Create a photo fragment.
      *
      * @param meta          Photo meta.
      * @param preLoadBitmap Any bitmap to preload or null.
      * @return A photo fragment.
      */
-    public static PhotoFragment createInstance(PhotoMeta meta, Bitmap preLoadBitmap) {
+    public static PhotoFragment createInstance(PhotoMeta meta, Bitmap preLoadBitmap, boolean usePlaceHolder, boolean useFade) {
         PhotoFragment photoFragment = new PhotoFragment();
         Bundle arguments = new Bundle();
         arguments.putSerializable(BundleKeys.PHOTO_META_KEY, meta);
         arguments.putParcelable(BundleKeys.BITMAP_KEY, preLoadBitmap);
+        arguments.putBoolean(BundleKeys.USE_PLACE_HOLDER, usePlaceHolder);
+        arguments.putBoolean(BundleKeys.USE_FADE, useFade);
         photoFragment.setArguments(arguments);
         return photoFragment;
     }
@@ -61,6 +74,8 @@ public class PhotoFragment extends Fragment {
         Bundle arguments = getArguments();
         mPhotoMeta = (PhotoMeta) arguments.getSerializable(BundleKeys.PHOTO_META_KEY);
         mPreloadBitmap = arguments.getParcelable(BundleKeys.BITMAP_KEY);
+        mUsePlaceHolder = arguments.getBoolean(BundleKeys.USE_PLACE_HOLDER);
+        mUseFade = arguments.getBoolean(BundleKeys.USE_FADE);
         return root;
     }
 
@@ -74,12 +89,18 @@ public class PhotoFragment extends Fragment {
      * If preload bitmap exists, load that first. Then load the real image.
      * <p/>
      * Note, disk caching is not used on purpose.
-     * No placeholder tells Picasso to not clear the ImageView prior to loading.
      */
     private void loadPhoto() {
         if (mPreloadBitmap != null) {
             mImageView.setImageBitmap(mPreloadBitmap);
         }
-        SinglePicasso.getPicasso().load(new File(mPhotoMeta.getUrl())).fit().centerInside().noPlaceholder().noFade().into(mImageView);
+        RequestCreator load = SinglePicasso.getPicasso().load(new File(mPhotoMeta.getUrl()));
+        if (!mUsePlaceHolder) {
+            load.noPlaceholder();
+        }
+        if (!mUseFade) {
+            load.noFade();
+        }
+        load.fit().centerInside().into(mImageView);
     }
 }

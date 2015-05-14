@@ -17,7 +17,6 @@ import com.sweetlab.sweetspot.adapter.CollectionAdapter;
 import com.sweetlab.sweetspot.adapter.CollectionItemClick;
 import com.sweetlab.sweetspot.loader.CollectionItem;
 import com.sweetlab.sweetspot.loader.CollectionLoader;
-import com.sweetlab.sweetspot.loader.LoaderConstants;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
 import com.sweetlab.sweetspot.modifiers.ModifierFactory;
 import com.sweetlab.sweetspot.modifiers.ModifierType;
@@ -29,7 +28,7 @@ import rx.Observer;
 /**
  * Present a collection of photos with date dividers in a mondrian style.
  */
-public class CollectionFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<CollectionItem>> {
+public class RecyclerViewFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<CollectionItem>> {
     /**
      * Set two columns.
      */
@@ -65,6 +64,11 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
     private CollectionFragmentListener mFragmentListener;
 
     /**
+     * The loader id.
+     */
+    private int mLoaderId;
+
+    /**
      * Create a collection fragment.
      *
      * @param span         The span of the recycler view.
@@ -72,15 +76,16 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
      * @param modifierType The collection modifier.
      * @return A collection fragment.
      */
-    public static CollectionFragment createInstance(int span, int orientation, ModifierType modifierType) {
+    public static RecyclerViewFragment createInstance(int span, int orientation, ModifierType modifierType, int loader) {
         Bundle arguments = new Bundle();
-        arguments.putInt(BundleKeys.COLLECTION_SPAN_COUNT, span);
-        arguments.putInt(BundleKeys.COLLECTION_ORIENTATION, orientation);
-        arguments.putSerializable(BundleKeys.COLLECTION_MODIFIER, modifierType);
+        arguments.putInt(BundleKeys.RECYCLER_VIEW_SPAN_COUNT, span);
+        arguments.putInt(BundleKeys.RECYCLER_VIEW_ORIENTATION, orientation);
+        arguments.putSerializable(BundleKeys.COLLECTION_LOADER_MODIFIER, modifierType);
+        arguments.putInt(BundleKeys.LOADER_ID, loader);
 
-        CollectionFragment collectionFragment = new CollectionFragment();
-        collectionFragment.setArguments(arguments);
-        return collectionFragment;
+        RecyclerViewFragment recyclerViewFragment = new RecyclerViewFragment();
+        recyclerViewFragment.setArguments(arguments);
+        return recyclerViewFragment;
     }
 
     @Nullable
@@ -91,13 +96,13 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
         mRecyclerView.setHasFixedSize(true);
 
         Bundle arguments = getArguments();
-        mSpan = arguments.getInt(BundleKeys.COLLECTION_SPAN_COUNT, DEFAULT_SPAN);
-        mModifierType = (ModifierType) arguments.getSerializable(BundleKeys.COLLECTION_MODIFIER);
-        mOrientation = arguments.getInt(BundleKeys.COLLECTION_ORIENTATION, DEFAULT_ORIENTATION);
+        mSpan = arguments.getInt(BundleKeys.RECYCLER_VIEW_SPAN_COUNT, DEFAULT_SPAN);
+        mModifierType = (ModifierType) arguments.getSerializable(BundleKeys.COLLECTION_LOADER_MODIFIER);
+        mOrientation = arguments.getInt(BundleKeys.RECYCLER_VIEW_ORIENTATION, DEFAULT_ORIENTATION);
+        mLoaderId = arguments.getInt(BundleKeys.LOADER_ID);
 
         StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(mSpan, mOrientation);
-        layoutManager.setGapStrategy(
-                StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
+        layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
         mRecyclerView.setLayoutManager(layoutManager);
 
         return root;
@@ -123,7 +128,7 @@ public class CollectionFragment extends Fragment implements LoaderManager.Loader
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(LoaderConstants.PHOTO_COLLECTION, null, this);
+        getLoaderManager().initLoader(mLoaderId, null, this);
     }
 
     @Override

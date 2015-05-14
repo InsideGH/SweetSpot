@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/multi_photo_main_pane"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_alignParentBottom="true"
+        android:id="@+id/multi_photo_bottom_pane"
+        android:layout_marginBottom="@dimen/bottom_pane_bottom_margin"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottom_pane_height"></FrameLayout>
+</RelativeLayout>

@@ -66,8 +66,8 @@ public class CollectionLoader extends AsyncTaskLoader<List<CollectionItem>> {
     /**
      * TODO : fix content change listener.
      *
-     * @param context preferably Android application context.
-     * @param modifier
+     * @param context  preferably Android application context.
+     * @param modifier The collection modifier.
      */
     public CollectionLoader(Context context, CollectionModifier modifier) {
         super(context);

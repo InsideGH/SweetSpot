@@ -8,7 +8,8 @@ import com.sweetlab.sweetspot.adapter.CollectionItemClick;
 public interface CollectionFragmentListener {
     /**
      * Called when a item in the collection is clicked.
-     * @param collectionItemClick
+     *
+     * @param collectionItemClick Information about the click.
      */
     void onItemClicked(CollectionItemClick collectionItemClick);
 }
