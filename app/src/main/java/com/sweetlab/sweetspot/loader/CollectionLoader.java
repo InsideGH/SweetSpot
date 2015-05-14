@@ -1,11 +1,11 @@
 package com.sweetlab.sweetspot.loader;
 
-import android.content.AsyncTaskLoader;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.v4.content.AsyncTaskLoader;
 
 import com.sweetlab.sweetspot.modifiers.CollectionModifier;
 import com.sweetlab.sweetspot.photometa.MetaHelper;

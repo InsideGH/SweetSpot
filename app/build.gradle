@@ -33,4 +33,5 @@ dependencies {
     compile 'io.realm:realm-android:0.80.2-SNAPSHOT'
     compile 'io.reactivex:rxjava:1.0.9'
     compile project(':diskpicasso')
+    compile 'com.android.support:support-v4:21.0.3'
 }

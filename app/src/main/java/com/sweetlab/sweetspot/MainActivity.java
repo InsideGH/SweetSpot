@@ -1,9 +1,9 @@
 package com.sweetlab.sweetspot;
 
-import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.transition.Explode;
 import android.transition.Fade;
@@ -21,7 +21,7 @@ import com.sweetlab.sweetspot.modifiers.ModifierType;
 import com.sweetlab.sweetspot.view.AspectImageView;
 import com.sweetlab.sweetspot.view.ViewHelper;
 
-public class MainActivity extends Activity implements CollectionFragmentListener{
+public class MainActivity extends FragmentActivity implements CollectionFragmentListener{
     /**
      * Set two columns.
      */
@@ -42,9 +42,9 @@ public class MainActivity extends Activity implements CollectionFragmentListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Fragment fragment = getFragmentManager().findFragmentById(R.id.main_activity_container);
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.main_activity_container);
         if (fragment == null) {
-            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             CollectionFragment photoCollection = CollectionFragment.createInstance(SPAN, ORIENTATION, DAY_DIVIDERS);
             transaction.add(R.id.main_activity_container, photoCollection, FragmentTags.MAIN_COLLECTION);
             transaction.commit();
@@ -78,7 +78,7 @@ public class MainActivity extends Activity implements CollectionFragmentListener
         PhotoFragment photoFragment = new PhotoFragment();
         AspectImageView imageView = collectionItemClick.getPhotoHolder().getImageView();
 
-        Fragment current = getFragmentManager().findFragmentById(R.id.main_activity_container);
+        Fragment current = getSupportFragmentManager().findFragmentById(R.id.main_activity_container);
 
         current.setExitTransition(new Explode());
         photoFragment.setReturnTransition(new Fade());
@@ -89,7 +89,7 @@ public class MainActivity extends Activity implements CollectionFragmentListener
         arguments.putParcelable(BundleKeys.BITMAP_KEY, ViewHelper.copyBitmap(imageView, false));
         photoFragment.setArguments(arguments);
 
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.main_activity_container, photoFragment, FragmentTags.SINGLE_PHOTO);
         transaction.addToBackStack(FragmentTags.SINGLE_PHOTO);
         transaction.commit();
