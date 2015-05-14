@@ -16,7 +16,6 @@ import com.sweetlab.sweetspot.fragment.CollectionFragment;
 import com.sweetlab.sweetspot.fragment.CollectionFragmentListener;
 import com.sweetlab.sweetspot.fragment.FragmentTags;
 import com.sweetlab.sweetspot.fragment.PhotoFragment;
-import com.sweetlab.sweetspot.messaging.BundleKeys;
 import com.sweetlab.sweetspot.modifiers.ModifierType;
 import com.sweetlab.sweetspot.view.AspectImageView;
 import com.sweetlab.sweetspot.view.ViewHelper;
@@ -75,19 +74,14 @@ public class MainActivity extends FragmentActivity implements CollectionFragment
     public void onItemClicked(CollectionItemClick collectionItemClick) {
         Log.d("Peter100", "MainActivity.onItemClicked");
 
-        PhotoFragment photoFragment = new PhotoFragment();
         AspectImageView imageView = collectionItemClick.getPhotoHolder().getImageView();
+        PhotoFragment photoFragment = PhotoFragment.createInstance(collectionItemClick.getPhotoMeta(), ViewHelper.copyBitmap(imageView, false));
 
         Fragment current = getSupportFragmentManager().findFragmentById(R.id.main_activity_container);
 
         current.setExitTransition(new Explode());
         photoFragment.setReturnTransition(new Fade());
         photoFragment.setEnterTransition(new Fade());
-
-        Bundle arguments = new Bundle();
-        arguments.putSerializable(BundleKeys.PHOTO_META_KEY, collectionItemClick.getPhotoMeta());
-        arguments.putParcelable(BundleKeys.BITMAP_KEY, ViewHelper.copyBitmap(imageView, false));
-        photoFragment.setArguments(arguments);
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.main_activity_container, photoFragment, FragmentTags.SINGLE_PHOTO);

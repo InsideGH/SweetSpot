@@ -36,6 +36,22 @@ public class PhotoFragment extends Fragment {
      */
     private Bitmap mPreloadBitmap;
 
+    /**
+     * Create a photo fragment.
+     *
+     * @param meta          Photo meta.
+     * @param preLoadBitmap Any bitmap to preload or null.
+     * @return A photo fragment.
+     */
+    public static PhotoFragment createInstance(PhotoMeta meta, Bitmap preLoadBitmap) {
+        PhotoFragment photoFragment = new PhotoFragment();
+        Bundle arguments = new Bundle();
+        arguments.putSerializable(BundleKeys.PHOTO_META_KEY, meta);
+        arguments.putParcelable(BundleKeys.BITMAP_KEY, preLoadBitmap);
+        photoFragment.setArguments(arguments);
+        return photoFragment;
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
