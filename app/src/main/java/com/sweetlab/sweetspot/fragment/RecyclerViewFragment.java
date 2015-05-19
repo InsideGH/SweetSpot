@@ -1,6 +1,5 @@
 package com.sweetlab.sweetspot.fragment;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -17,9 +16,7 @@ import com.sweetlab.sweetspot.adapter.CollectionAdapter;
 import com.sweetlab.sweetspot.adapter.CollectionItemClick;
 import com.sweetlab.sweetspot.loader.CollectionItem;
 import com.sweetlab.sweetspot.loader.CollectionLoader;
-import com.sweetlab.sweetspot.messaging.BundleKeys;
-import com.sweetlab.sweetspot.modifiers.ModifierFactory;
-import com.sweetlab.sweetspot.modifiers.ModifierType;
+import com.sweetlab.sweetspot.modifiers.CollectionModifier;
 
 import java.util.List;
 
@@ -28,7 +25,7 @@ import rx.Observer;
 /**
  * Present a collection of photos with date dividers in a mondrian style.
  */
-public class RecyclerViewFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<CollectionItem>> {
+public abstract class RecyclerViewFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<CollectionItem>> {
     /**
      * Set two columns.
      */
@@ -42,51 +39,7 @@ public class RecyclerViewFragment extends Fragment implements LoaderManager.Load
     /**
      * The recycler view.
      */
-    private RecyclerView mRecyclerView;
-
-    /**
-     * The collection modifier that is passed to this fragment.
-     */
-    private ModifierType mModifierType;
-
-    /**
-     * The span of the recycler view.
-     */
-    private int mSpan;
-    /**
-     * The orientation of the recycler view.
-     */
-    private int mOrientation;
-
-    /**
-     * Fragment listener.
-     */
-    private CollectionFragmentListener mFragmentListener;
-
-    /**
-     * The loader id.
-     */
-    private int mLoaderId;
-
-    /**
-     * Create a collection fragment.
-     *
-     * @param span         The span of the recycler view.
-     * @param orientation  The orientation of the recycler view.
-     * @param modifierType The collection modifier.
-     * @return A collection fragment.
-     */
-    public static RecyclerViewFragment createInstance(int span, int orientation, ModifierType modifierType, int loader) {
-        Bundle arguments = new Bundle();
-        arguments.putInt(BundleKeys.RECYCLER_VIEW_SPAN_COUNT, span);
-        arguments.putInt(BundleKeys.RECYCLER_VIEW_ORIENTATION, orientation);
-        arguments.putSerializable(BundleKeys.COLLECTION_LOADER_MODIFIER, modifierType);
-        arguments.putInt(BundleKeys.LOADER_ID, loader);
-
-        RecyclerViewFragment recyclerViewFragment = new RecyclerViewFragment();
-        recyclerViewFragment.setArguments(arguments);
-        return recyclerViewFragment;
-    }
+    protected RecyclerView mRecyclerView;
 
     @Nullable
     @Override
@@ -95,13 +48,7 @@ public class RecyclerViewFragment extends Fragment implements LoaderManager.Load
         mRecyclerView = (RecyclerView) root.findViewById(R.id.photo_collection_recycler_view);
         mRecyclerView.setHasFixedSize(true);
 
-        Bundle arguments = getArguments();
-        mSpan = arguments.getInt(BundleKeys.RECYCLER_VIEW_SPAN_COUNT, DEFAULT_SPAN);
-        mModifierType = (ModifierType) arguments.getSerializable(BundleKeys.COLLECTION_LOADER_MODIFIER);
-        mOrientation = arguments.getInt(BundleKeys.RECYCLER_VIEW_ORIENTATION, DEFAULT_ORIENTATION);
-        mLoaderId = arguments.getInt(BundleKeys.LOADER_ID);
-
-        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(mSpan, mOrientation);
+        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(getSpan(), getOrientation());
         layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
         mRecyclerView.setLayoutManager(layoutManager);
 
@@ -109,64 +56,59 @@ public class RecyclerViewFragment extends Fragment implements LoaderManager.Load
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mFragmentListener = (CollectionFragmentListener) activity;
-        } catch (ClassCastException e) {
-            e.printStackTrace();
-            throw new ClassCastException("Activity " + activity.toString() + " must implement " + CollectionFragmentListener.class.getSimpleName());
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mFragmentListener = null;
-    }
-
-    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(mLoaderId, null, this);
+        getLoaderManager().initLoader(getLoadedId(), null, this);
     }
 
     @Override
     public Loader<List<CollectionItem>> onCreateLoader(int id, Bundle args) {
-        return new CollectionLoader(getActivity().getApplicationContext(), ModifierFactory.create(mModifierType));
+        return new CollectionLoader(getActivity().getApplicationContext(), getModifier());
     }
 
     @Override
     public void onLoadFinished(Loader<List<CollectionItem>> loader, List<CollectionItem> list) {
-        CollectionAdapter adapter = new CollectionAdapter(list, mOrientation, mSpan);
-        adapter.subscribeForClicks(new PhotoClickObserver());
+        CollectionAdapter adapter = new CollectionAdapter(list, getOrientation(), getSpan());
+        adapter.subscribeForClicks(getClickObserver());
         mRecyclerView.setAdapter(adapter);
     }
 
     @Override
     public void onLoaderReset(Loader<List<CollectionItem>> loader) {
-
     }
 
     /**
-     * TODO change the single photo fragment to a viewpager.
-     * <p/>
-     * Photo click observer. This will start a fragment showing the photo in fullscreen.
-     * The bitmap from the collection item will be transferred to the photo fragment
-     * to get a instant transaction feeling.
+     * Get the span for the recycler view.
+     *
+     * @return The span.
      */
-    private class PhotoClickObserver implements Observer<CollectionItemClick> {
-        @Override
-        public void onCompleted() {
-        }
+    protected abstract int getSpan();
 
-        @Override
-        public void onError(Throwable e) {
-        }
+    /**
+     * Get the orientation for the recycler view.
+     *
+     * @return The orientation.
+     */
+    protected abstract int getOrientation();
 
-        @Override
-        public void onNext(CollectionItemClick collectionItemClick) {
-            mFragmentListener.onItemClicked(collectionItemClick);
-        }
-    }
+    /**
+     * Get the collection modifier to be used in the adapter.
+     *
+     * @return The collection modifier.
+     */
+    protected abstract CollectionModifier getModifier();
+
+    /**
+     * Get the loader id to be used.
+     *
+     * @return The loader id.
+     */
+    protected abstract int getLoadedId();
+
+    /**
+     * Get the click observer.
+     *
+     * @return The click observer.
+     */
+    protected abstract Observer<? super CollectionItemClick> getClickObserver();
 }

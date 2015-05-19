@@ -1,5 +1,6 @@
 package com.sweetlab.sweetspot.fragment;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -10,12 +11,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.sweetlab.sweetspot.R;
+import com.sweetlab.sweetspot.adapter.CollectionItemClick;
 import com.sweetlab.sweetspot.adapter.ViewPagerAdapter;
 import com.sweetlab.sweetspot.loader.CollectionItem;
 import com.sweetlab.sweetspot.loader.CollectionLoader;
 import com.sweetlab.sweetspot.loader.LoaderConstants;
-import com.sweetlab.sweetspot.modifiers.ModifierFactory;
-import com.sweetlab.sweetspot.modifiers.ModifierType;
+import com.sweetlab.sweetspot.modifiers.NoModifier;
 
 import java.util.List;
 
@@ -23,10 +24,28 @@ import java.util.List;
  * The photo view pager fragment.
  */
 public class ViewPagerFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<CollectionItem>> {
+
+    /**
+     * The view pager fragment listener.
+     */
+    public interface ViewPagerListener {
+        /**
+         * Called when a item in the collection is clicked.
+         *
+         * @param collectionItemClick Information about the click.
+         */
+        void onViewPagerItemClicked(CollectionItemClick collectionItemClick);
+    }
+
     /**
      * The view pager.
      */
     private ViewPager mViewPager;
+
+    /**
+     * The activity listening.
+     */
+    private ViewPagerListener mListener;
 
     /**
      * Create a view pager fragment.
@@ -45,6 +64,23 @@ public class ViewPagerFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (ViewPagerListener) activity;
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            throw new ClassCastException("Activity " + activity.toString() + " must implement " + ViewPagerListener.class.getSimpleName());
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         getLoaderManager().initLoader(LoaderConstants.VIEWPAGER, null, this);
@@ -52,7 +88,7 @@ public class ViewPagerFragment extends Fragment implements LoaderManager.LoaderC
 
     @Override
     public Loader<List<CollectionItem>> onCreateLoader(int id, Bundle args) {
-        return new CollectionLoader(getActivity().getApplicationContext(), ModifierFactory.create(ModifierType.NONE));
+        return new CollectionLoader(getActivity().getApplicationContext(), new NoModifier());
     }
 
     @Override

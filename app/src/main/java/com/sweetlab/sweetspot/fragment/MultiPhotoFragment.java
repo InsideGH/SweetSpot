@@ -4,30 +4,17 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.sweetlab.sweetspot.R;
-import com.sweetlab.sweetspot.loader.LoaderConstants;
-import com.sweetlab.sweetspot.modifiers.ModifierType;
 
 /**
  * Multi photo fragment with a photo pager fragment in main pane and
  * a photo carousel in the bottom pane.
  */
 public class MultiPhotoFragment extends Fragment {
-    /**
-     * Use one row in horizontal carousel.
-     */
-    private static final int BOTTOM_PANE_SPAN = 1;
-
-    /**
-     * Use horizontal scrolling in carousel.
-     */
-    private static final int BOTTOM_PANE_ORIENTATION = StaggeredGridLayoutManager.HORIZONTAL;
-
     /**
      * Create a multi photo fragment.
      *
@@ -76,7 +63,7 @@ public class MultiPhotoFragment extends Fragment {
     private void addBottomPane(FragmentManager fm) {
         Fragment bottomFragment;
         FragmentTransaction transaction = fm.beginTransaction();
-        bottomFragment = RecyclerViewFragment.createInstance(BOTTOM_PANE_SPAN, BOTTOM_PANE_ORIENTATION, ModifierType.NONE, LoaderConstants.CAROUSEL);
+        bottomFragment = new CarouselFragment();
         transaction.add(R.id.multi_photo_bottom_pane, bottomFragment, FragmentTags.CAROUSEL_TAG);
         transaction.commit();
     }
