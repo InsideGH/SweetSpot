@@ -1,6 +1,7 @@
 package com.sweetlab.sweetspot.fragment;
 
 import android.app.Activity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 
 import com.sweetlab.sweetspot.R;
@@ -83,6 +84,18 @@ public class CarouselFragment extends RecyclerViewFragment {
     @Override
     protected Observer<? super CollectionItemClick> getClickObserver() {
         return new CarouselClickObserver();
+    }
+
+    /**
+     * Set the position of the carousel.
+     *
+     * @param position Adapter position.
+     */
+    public void setPosition(int position) {
+        RecyclerView.Adapter adapter = mRecyclerView.getAdapter();
+        if (adapter != null && adapter.getItemCount() > 0) {
+            mRecyclerView.scrollToPosition(position);
+        }
     }
 
     /**

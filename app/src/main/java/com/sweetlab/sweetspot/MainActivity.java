@@ -76,12 +76,22 @@ public class MainActivity extends FragmentActivity implements MainGridFragment.M
     }
 
     @Override
-    public void onViewSingleTap() {
+    public void onViewPagerSingleTap() {
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentTags.MULTI_PHOTO_TAG);
         if (fragment != null) {
-            Log.d("Peter100", "MainActivity.onViewSingleTap");
+            Log.d("Peter100", "MainActivity.onViewPagerSingleTap");
             MultiPhotoFragment multiFragment = (MultiPhotoFragment) fragment;
             multiFragment.toggleCarousel();
+        }
+    }
+
+    @Override
+    public void onViewPagerSelected(int position) {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentTags.MULTI_PHOTO_TAG);
+        if (fragment != null) {
+            Log.d("Peter100", "MainActivity.onViewPagerSelected");
+            MultiPhotoFragment multiFragment = (MultiPhotoFragment) fragment;
+            multiFragment.setCarouselPosition(position);
         }
     }
 }

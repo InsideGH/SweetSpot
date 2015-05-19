@@ -57,6 +57,19 @@ public class MultiPhotoFragment extends Fragment {
     }
 
     /**
+     * Set the position of the carousel.
+     *
+     * @param position The adapter position.
+     */
+    public void setCarouselPosition(int position) {
+        Fragment fragment = getChildFragmentManager().findFragmentByTag(FragmentTags.CAROUSEL_TAG);
+        if (fragment != null) {
+            CarouselFragment carouselFragment = (CarouselFragment) fragment;
+            carouselFragment.setPosition(position);
+        }
+    }
+
+    /**
      * Add the viewpager fragment to main pane.
      *
      * @param fm Support fragment manager.

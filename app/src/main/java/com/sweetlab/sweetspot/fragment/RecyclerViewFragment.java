@@ -27,19 +27,14 @@ import rx.Observer;
  */
 public abstract class RecyclerViewFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<CollectionItem>> {
     /**
-     * Set two columns.
-     */
-    private static final int DEFAULT_SPAN = 2;
-
-    /**
-     * Vertical scrolling.
-     */
-    private static final int DEFAULT_ORIENTATION = StaggeredGridLayoutManager.VERTICAL;
-
-    /**
      * The recycler view.
      */
     protected RecyclerView mRecyclerView;
+
+    /**
+     * The staggered layout manager.
+     */
+    protected StaggeredGridLayoutManager mStaggeredLayoutManager;
 
     @Nullable
     @Override
@@ -48,9 +43,9 @@ public abstract class RecyclerViewFragment extends Fragment implements LoaderMan
         mRecyclerView = (RecyclerView) root.findViewById(R.id.photo_collection_recycler_view);
         mRecyclerView.setHasFixedSize(true);
 
-        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(getSpan(), getOrientation());
-        layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
-        mRecyclerView.setLayoutManager(layoutManager);
+        mStaggeredLayoutManager = new StaggeredGridLayoutManager(getSpan(), getOrientation());
+        mStaggeredLayoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
+        mRecyclerView.setLayoutManager(mStaggeredLayoutManager);
 
         return root;
     }

@@ -33,7 +33,14 @@ public class ViewPagerFragment extends Fragment implements LoaderManager.LoaderC
         /**
          * Called when a photo has been single tapped.
          */
-        void onViewSingleTap();
+        void onViewPagerSingleTap();
+
+        /**
+         * A new page has been selected.
+         *
+         * @param position The adapter position.
+         */
+        void onViewPagerSelected(int position);
     }
 
     /**
@@ -60,6 +67,7 @@ public class ViewPagerFragment extends Fragment implements LoaderManager.LoaderC
         View root = inflater.inflate(R.layout.photo_pager_view, container, false);
         mViewPager = (ViewPager) root.findViewById(R.id.view_pager);
         mViewPager.setOnTouchListener(new OnTouchListener());
+        mViewPager.setOnPageChangeListener(new OnPageListener());
         return root;
     }
 
@@ -119,7 +127,7 @@ public class ViewPagerFragment extends Fragment implements LoaderManager.LoaderC
 
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
-                mListener.onViewSingleTap();
+                mListener.onViewPagerSingleTap();
                 return true;
             }
 
@@ -142,6 +150,22 @@ public class ViewPagerFragment extends Fragment implements LoaderManager.LoaderC
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             return mGestureDetector.onTouchEvent(event);
+        }
+    }
+
+    private class OnPageListener implements ViewPager.OnPageChangeListener {
+
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            mListener.onViewPagerSelected(position);
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
         }
     }
 }
