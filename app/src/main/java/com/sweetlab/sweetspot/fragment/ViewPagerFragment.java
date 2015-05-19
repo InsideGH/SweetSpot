@@ -6,12 +6,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.sweetlab.sweetspot.R;
-import com.sweetlab.sweetspot.adapter.CollectionItemClick;
 import com.sweetlab.sweetspot.adapter.ViewPagerAdapter;
 import com.sweetlab.sweetspot.loader.CollectionItem;
 import com.sweetlab.sweetspot.loader.CollectionLoader;
@@ -30,11 +31,9 @@ public class ViewPagerFragment extends Fragment implements LoaderManager.LoaderC
      */
     public interface ViewPagerListener {
         /**
-         * Called when a item in the collection is clicked.
-         *
-         * @param collectionItemClick Information about the click.
+         * Called when a photo has been single tapped.
          */
-        void onViewPagerItemClicked(CollectionItemClick collectionItemClick);
+        void onViewSingleTap();
     }
 
     /**
@@ -60,6 +59,7 @@ public class ViewPagerFragment extends Fragment implements LoaderManager.LoaderC
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.photo_pager_view, container, false);
         mViewPager = (ViewPager) root.findViewById(R.id.view_pager);
+        mViewPager.setOnTouchListener(new OnTouchListener());
         return root;
     }
 
@@ -99,5 +99,49 @@ public class ViewPagerFragment extends Fragment implements LoaderManager.LoaderC
 
     @Override
     public void onLoaderReset(Loader<List<CollectionItem>> loader) {
+    }
+
+    /**
+     * The viewpager onTouch listener.
+     */
+    private class OnTouchListener implements View.OnTouchListener {
+
+        private GestureDetector mGestureDetector = new GestureDetector(getActivity().getApplicationContext(), new GestureDetector.OnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return false;
+            }
+
+            @Override
+            public void onShowPress(MotionEvent e) {
+
+            }
+
+            @Override
+            public boolean onSingleTapUp(MotionEvent e) {
+                mListener.onViewSingleTap();
+                return true;
+            }
+
+            @Override
+            public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                return false;
+            }
+
+            @Override
+            public void onLongPress(MotionEvent e) {
+
+            }
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                return false;
+            }
+        });
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            return mGestureDetector.onTouchEvent(event);
+        }
     }
 }

@@ -43,6 +43,20 @@ public class MultiPhotoFragment extends Fragment {
     }
 
     /**
+     * Toggle the carousel visibility.
+     * TODO, use eps? Seems to work fine as is though.
+     */
+    public void toggleCarousel() {
+        View bottomContainer = getActivity().findViewById(R.id.multi_photo_bottom_pane);
+        int duration = getActivity().getResources().getInteger(R.integer.carousel_toggle_duration);
+        if (bottomContainer.getAlpha() == 1) {
+            bottomContainer.animate().alpha(0).setDuration(duration);
+        } else {
+            bottomContainer.animate().alpha(1).setDuration(duration);
+        }
+    }
+
+    /**
      * Add the viewpager fragment to main pane.
      *
      * @param fm Support fragment manager.
