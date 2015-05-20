@@ -132,6 +132,7 @@ public class MainActivity extends FragmentActivity implements LoaderManager.Load
             Intent intent = new Intent(getApplicationContext(), FullscreenActivity.class);
             intent.putExtra(BundleKeys.UNMODIFIED_POSITION, collectionItemClick.getUnmodifiedPosition());
             startActivity(intent);
+            overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
         }
     }
 }

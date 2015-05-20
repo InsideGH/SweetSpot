@@ -122,6 +122,12 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
     public void onLoaderReset(Loader<Collection> loader) {
     }
 
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
+    }
+
     /**
      * The viewpager onTouch listener.
      */
