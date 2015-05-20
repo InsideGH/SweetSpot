@@ -18,6 +18,7 @@ import com.sweetlab.sweetspot.messaging.BundleKeys;
 import com.sweetlab.sweetspot.modifiers.CollectionModifier;
 import com.sweetlab.sweetspot.modifiers.DayDividerModifier;
 import com.sweetlab.sweetspot.view.MainGridRecyclerView;
+import com.sweetlab.sweetspot.view.ViewHelper;
 
 import rx.Observer;
 
@@ -101,7 +102,12 @@ public class MainActivity extends FragmentActivity implements LoaderManager.Load
     public void onLoadFinished(Loader<Collection> loader, Collection list) {
         mAdapter = new CollectionAdapter(list, RECYCLER_VIEW_ORIENTATION, mSpan);
         mAdapter.subscribeForClicks(new MainGridClickObserver());
-        mMainGridRecyclerView.setAdapter(mAdapter);
+        ViewHelper.runOnLayout(mMainGridRecyclerView, new Runnable() {
+            @Override
+            public void run() {
+                mMainGridRecyclerView.setAdapter(mAdapter);
+            }
+        });
     }
 
     @Override

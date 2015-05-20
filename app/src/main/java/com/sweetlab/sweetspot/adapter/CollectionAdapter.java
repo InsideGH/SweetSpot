@@ -82,6 +82,11 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
         mRecyclerView = recyclerView;
+        if (mViewOrientation == StaggeredGridLayoutManager.VERTICAL) {
+            mBoundedLayout = new BoundedLayout(BoundedLayout.BoundedDirection.HORIZONTAL, mRecyclerView.getMeasuredWidth() / mViewSpan);
+        } else {
+            mBoundedLayout = new BoundedLayout(BoundedLayout.BoundedDirection.VERTICAL, mRecyclerView.getMeasuredHeight());
+        }
     }
 
     @Override
@@ -173,15 +178,6 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      */
     private void loadPhotoView(final PhotoMeta photo, PhotoViewHolder holder) {
         final AspectImageView imageView = holder.getImageView();
-
-        if (mBoundedLayout == null) {
-            if (mViewOrientation == StaggeredGridLayoutManager.VERTICAL) {
-                mBoundedLayout = new BoundedLayout(BoundedLayout.BoundedDirection.HORIZONTAL, mRecyclerView.getMeasuredWidth() / mViewSpan);
-            } else {
-                mBoundedLayout = new BoundedLayout(BoundedLayout.BoundedDirection.VERTICAL, mRecyclerView.getMeasuredHeight());
-            }
-        }
-
         final DiskPicasso instance = DiskPicasso.getInstance();
         List<CacheEntry> cacheEntries = instance.getCacheEntries(photo.getUrl());
 
@@ -249,10 +245,11 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     /**
      * Set a click listener on the photo.
-     *  @param adapterPosition Adapter position.
+     *
+     * @param adapterPosition    Adapter position.
      * @param unmodifiedPosition
-     * @param photoMeta       Photo meta data.
-     * @param holder          Holder with view.
+     * @param photoMeta          Photo meta data.
+     * @param holder             Holder with view.
      */
     private void setClickListener(int adapterPosition, int unmodifiedPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
         holder.getImageView().setOnClickListener(new ViewOnClickListener(adapterPosition, unmodifiedPosition, photoMeta, holder));
