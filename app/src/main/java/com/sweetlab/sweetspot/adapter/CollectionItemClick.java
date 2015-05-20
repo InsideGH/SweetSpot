@@ -21,15 +21,18 @@ public class CollectionItemClick {
      */
     private final PhotoViewHolder mPhotoViewHolder;
 
+    private final int mUnmodifiedPosition;
+
     /**
      * Constructor. All parameters as for the clicked item.
-     *
-     * @param adapterPosition Adapter position.
+     *  @param adapterPosition Adapter position.
+     * @param unmodifiedPosition
      * @param photoMeta       Photo meta data.
      * @param holder          View holder.
      */
-    public CollectionItemClick(int adapterPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
+    public CollectionItemClick(int adapterPosition, int unmodifiedPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
         mAdapterPosition = adapterPosition;
+        mUnmodifiedPosition = unmodifiedPosition;
         mPhotoMeta = photoMeta;
         mPhotoViewHolder = holder;
     }
@@ -42,6 +45,10 @@ public class CollectionItemClick {
     @SuppressWarnings("unused")
     public int getAdapterPosition() {
         return mAdapterPosition;
+    }
+
+    public int getUnmodifiedPosition() {
+        return mUnmodifiedPosition;
     }
 
     /**

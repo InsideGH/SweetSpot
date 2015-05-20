@@ -103,7 +103,6 @@ public class PhotoMeta implements Serializable {
      *
      * @return The width.
      */
-    @SuppressWarnings("unused")
     public int getRawWidth() {
         return mWidth;
     }
@@ -113,7 +112,6 @@ public class PhotoMeta implements Serializable {
      *
      * @return The height.
      */
-    @SuppressWarnings("unused")
     public int getRawHeight() {
         return mHeight;
     }

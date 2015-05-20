@@ -119,6 +119,7 @@ public class DiskCache {
             observable.subscribe(new Action1<CacheEntry>() {
                 @Override
                 public void call(CacheEntry entry) {
+                    Log.d("Peter100", "DiskCache.call put " + entry);
                     mCacheEntryCache.put(entry);
                 }
             });
@@ -158,10 +159,6 @@ public class DiskCache {
             entries = mJournal.retrieveAll();
         }
         if (entries != null) {
-            Log.d("Peter100", "DiskCache.init");
-            for (CacheEntry e : entries) {
-                Log.d("Peter100", "DiskCache.init " + e);
-            }
             mCacheEntryCache.init(entries);
         }
     }

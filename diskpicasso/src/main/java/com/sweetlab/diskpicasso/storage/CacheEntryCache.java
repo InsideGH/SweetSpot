@@ -95,7 +95,6 @@ public class CacheEntryCache {
     public void put(CacheEntry entry) {
         mMemoryLock.writeLock().lock();
         try {
-            Log.d("Peter100", "CacheEntryCache.put " + entry);
             List<CacheEntry> cacheEntries = mCacheMap.get(entry.getOriginalFilePath());
             if (cacheEntries == null) {
                 cacheEntries = new ArrayList<>();

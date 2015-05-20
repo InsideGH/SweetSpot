@@ -1,39 +1,75 @@
 package com.sweetlab.sweetspot;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
-import android.transition.Explode;
-import android.util.Log;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.sweetlab.sweetspot.adapter.CollectionAdapter;
 import com.sweetlab.sweetspot.adapter.CollectionItemClick;
-import com.sweetlab.sweetspot.fragment.CarouselFragment;
-import com.sweetlab.sweetspot.fragment.FragmentTags;
-import com.sweetlab.sweetspot.fragment.MainGridFragment;
-import com.sweetlab.sweetspot.fragment.MultiPhotoFragment;
-import com.sweetlab.sweetspot.fragment.RecyclerViewFragment;
-import com.sweetlab.sweetspot.fragment.ViewPagerFragment;
+import com.sweetlab.sweetspot.loader.Collection;
+import com.sweetlab.sweetspot.loader.CollectionLoader;
+import com.sweetlab.sweetspot.loader.LoaderConstants;
+import com.sweetlab.sweetspot.messaging.BundleKeys;
+import com.sweetlab.sweetspot.modifiers.CollectionModifier;
+import com.sweetlab.sweetspot.modifiers.DayDividerModifier;
+import com.sweetlab.sweetspot.view.MainGridRecyclerView;
+
+import rx.Observer;
 
 /**
  * Will show a grid of photos with day divider.
  */
-public class MainActivity extends FragmentActivity implements MainGridFragment.MainGridListener, CarouselFragment.CarouselListener, ViewPagerFragment.ViewPagerListener {
+public class MainActivity extends FragmentActivity implements LoaderManager.LoaderCallbacks<Collection> {
+
+    /**
+     * Vertical scrolling.
+     */
+    private static final int RECYCLER_VIEW_ORIENTATION = StaggeredGridLayoutManager.VERTICAL;
+
+    /**
+     * Photos and day dividers.
+     */
+    private static final CollectionModifier INSERT_DAY_DIVIDERS = new DayDividerModifier();
+
+    /**
+     * The recycler view.
+     */
+    private MainGridRecyclerView mMainGridRecyclerView;
+
+    /**
+     * The recycler view layout manager.
+     */
+    private StaggeredGridLayoutManager mStaggeredLayoutManager;
+
+    /**
+     * The span of the recycler view.
+     */
+    private int mSpan;
+
+    /**
+     * The adapter.
+     */
+    private CollectionAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mMainGridRecyclerView = (MainGridRecyclerView) findViewById(R.id.main_grid_recycler_view);
+        mMainGridRecyclerView.setHasFixedSize(true);
 
-        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.main_activity_container);
-        if (fragment == null) {
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            RecyclerViewFragment photoCollection = new MainGridFragment();
-            transaction.add(R.id.main_activity_container, photoCollection, FragmentTags.MAIN_GRID_TAG);
-            transaction.commit();
-        }
+        mSpan = getResources().getInteger(R.integer.main_grid_span);
+
+        mStaggeredLayoutManager = new StaggeredGridLayoutManager(mSpan, RECYCLER_VIEW_ORIENTATION);
+        mStaggeredLayoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
+        mMainGridRecyclerView.setLayoutManager(mStaggeredLayoutManager);
+
+        getSupportLoaderManager().initLoader(LoaderConstants.MAIN_GRID, null, this);
     }
 
     @Override
@@ -57,41 +93,39 @@ public class MainActivity extends FragmentActivity implements MainGridFragment.M
     }
 
     @Override
-    public void onMainGridItemClicked(CollectionItemClick collectionItemClick) {
-        Log.d("Peter100", "MainActivity.onMainGridItemClicked");
-        Fragment fragment = MultiPhotoFragment.createInstance();
-        Fragment current = getSupportFragmentManager().findFragmentById(R.id.main_activity_container);
-
-        current.setExitTransition(new Explode());
-
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.main_activity_container, fragment, FragmentTags.MULTI_PHOTO_TAG);
-        transaction.addToBackStack(null);
-        transaction.commit();
+    public Loader<Collection> onCreateLoader(int id, Bundle args) {
+        return new CollectionLoader(getApplicationContext(), INSERT_DAY_DIVIDERS);
     }
 
     @Override
-    public void onCarouselItemClicked(CollectionItemClick collectionItemClick) {
-        Log.d("Peter100", "MainActivity.onCarouselItemClicked");
+    public void onLoadFinished(Loader<Collection> loader, Collection list) {
+        mAdapter = new CollectionAdapter(list, RECYCLER_VIEW_ORIENTATION, mSpan);
+        mAdapter.subscribeForClicks(new MainGridClickObserver());
+        mMainGridRecyclerView.setAdapter(mAdapter);
     }
 
     @Override
-    public void onViewPagerSingleTap() {
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentTags.MULTI_PHOTO_TAG);
-        if (fragment != null) {
-            Log.d("Peter100", "MainActivity.onViewPagerSingleTap");
-            MultiPhotoFragment multiFragment = (MultiPhotoFragment) fragment;
-            multiFragment.toggleCarousel();
+    public void onLoaderReset(Loader<Collection> loader) {
+
+    }
+
+    /**
+     * The click observer.
+     */
+    private class MainGridClickObserver implements Observer<CollectionItemClick> {
+        @Override
+        public void onCompleted() {
         }
-    }
 
-    @Override
-    public void onViewPagerSelected(int position) {
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(FragmentTags.MULTI_PHOTO_TAG);
-        if (fragment != null) {
-            Log.d("Peter100", "MainActivity.onViewPagerSelected");
-            MultiPhotoFragment multiFragment = (MultiPhotoFragment) fragment;
-            multiFragment.setCarouselPosition(position);
+        @Override
+        public void onError(Throwable e) {
+        }
+
+        @Override
+        public void onNext(CollectionItemClick collectionItemClick) {
+            Intent intent = new Intent(getApplicationContext(), FullscreenActivity.class);
+            intent.putExtra(BundleKeys.UNMODIFIED_POSITION, collectionItemClick.getUnmodifiedPosition());
+            startActivity(intent);
         }
     }
 }

@@ -12,6 +12,7 @@ import com.sweetlab.diskpicasso.CacheEntry;
 import com.sweetlab.diskpicasso.DiskPicasso;
 import com.sweetlab.diskpicasso.SinglePicasso;
 import com.sweetlab.sweetspot.R;
+import com.sweetlab.sweetspot.loader.Collection;
 import com.sweetlab.sweetspot.loader.CollectionItem;
 import com.sweetlab.sweetspot.photometa.DateMeta;
 import com.sweetlab.sweetspot.photometa.PhotoMeta;
@@ -38,7 +39,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     /**
      * The list of items in the collection. Can be either photos or date dividers.
      */
-    private final List<CollectionItem> mCollectionList;
+    private final Collection mCollection;
 
     /**
      * View orientation.
@@ -70,10 +71,10 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      *
      * @param list List of items.
      */
-    public CollectionAdapter(List<CollectionItem> list, int orientation, int span) {
+    public CollectionAdapter(Collection list, int orientation, int span) {
         mViewOrientation = orientation;
         mViewSpan = span;
-        mCollectionList = list;
+        mCollection = list;
         mClickSubject = PublishSubject.create();
     }
 
@@ -85,7 +86,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemViewType(int position) {
-        return mCollectionList.get(position).getType();
+        return mCollection.getItems().get(position).getType();
     }
 
     @Override
@@ -104,14 +105,15 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        CollectionItem collectionItem = mCollectionList.get(position);
+        CollectionItem collectionItem = mCollection.getItems().get(position);
         switch (collectionItem.getType()) {
 
             case CollectionItem.TYPE_PHOTO:
                 PhotoMeta photoMeta = collectionItem.getObject(PhotoMeta.class);
                 PhotoViewHolder photoHolder = (PhotoViewHolder) holder;
 
-                setClickListener(position, photoMeta, photoHolder);
+                int unmodifiedPosition = mCollection.getUnmodifiedPosition(position);
+                setClickListener(position, unmodifiedPosition, photoMeta, photoHolder);
                 configurePhotoView(photoMeta, photoHolder);
                 loadPhotoView(photoMeta, photoHolder);
                 break;
@@ -129,7 +131,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemCount() {
-        return mCollectionList.size();
+        return mCollection.getItems().size();
     }
 
     /**
@@ -247,13 +249,13 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     /**
      * Set a click listener on the photo.
-     *
-     * @param adapterPosition Adapter position.
+     *  @param adapterPosition Adapter position.
+     * @param unmodifiedPosition
      * @param photoMeta       Photo meta data.
      * @param holder          Holder with view.
      */
-    private void setClickListener(int adapterPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
-        holder.getImageView().setOnClickListener(new ViewOnClickListener(adapterPosition, photoMeta, holder));
+    private void setClickListener(int adapterPosition, int unmodifiedPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
+        holder.getImageView().setOnClickListener(new ViewOnClickListener(adapterPosition, unmodifiedPosition, photoMeta, holder));
     }
 
     /**
@@ -263,16 +265,18 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         private final int mAdapterPosition;
         private final PhotoMeta mPhotoMeta;
         private final PhotoViewHolder mHolder;
+        private final int mUnmodifiedPosition;
 
-        public ViewOnClickListener(int adapterPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
+        public ViewOnClickListener(int adapterPosition, int unmodifiedPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
             mAdapterPosition = adapterPosition;
+            mUnmodifiedPosition = unmodifiedPosition;
             mPhotoMeta = photoMeta;
             mHolder = holder;
         }
 
         @Override
         public void onClick(View v) {
-            mClickSubject.onNext(new CollectionItemClick(mAdapterPosition, mPhotoMeta, mHolder));
+            mClickSubject.onNext(new CollectionItemClick(mAdapterPosition, mUnmodifiedPosition, mPhotoMeta, mHolder));
         }
     }
 }

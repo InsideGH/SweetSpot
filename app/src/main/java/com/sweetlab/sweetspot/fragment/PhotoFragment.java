@@ -4,23 +4,30 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.squareup.picasso.RequestCreator;
+import com.sweetlab.diskpicasso.CacheEntry;
+import com.sweetlab.diskpicasso.DiskPicasso;
 import com.sweetlab.diskpicasso.SinglePicasso;
 import com.sweetlab.sweetspot.R;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
 import com.sweetlab.sweetspot.photometa.PhotoMeta;
 
 import java.io.File;
+import java.util.List;
 
 /**
- * A fragment just showing a single photo.
+ * A fragment showing a single photo.
  */
 public class PhotoFragment extends Fragment {
+    /**
+     * The decoding quality.
+     */
+    private static final Bitmap.Config JPEG_CONFIG = Bitmap.Config.ARGB_8888;
 
     /**
      * Image view with the image.
@@ -33,34 +40,21 @@ public class PhotoFragment extends Fragment {
     private PhotoMeta mPhotoMeta;
 
     /**
-     * Preload bitmap initially set.
+     * Pager width.
      */
-    private Bitmap mPreloadBitmap;
+    private int mWidth;
 
     /**
-     * If placeholder should be used when loading with picasso.
+     * Pager height.
      */
-    private boolean mUsePlaceHolder;
+    private int mHeight;
 
-    /**
-     * If fade should be used when loading with picasso.
-     */
-    private boolean mUseFade;
-
-    /**
-     * Create a photo fragment.
-     *
-     * @param meta          Photo meta.
-     * @param preLoadBitmap Any bitmap to preload or null.
-     * @return A photo fragment.
-     */
-    public static PhotoFragment createInstance(PhotoMeta meta, Bitmap preLoadBitmap, boolean usePlaceHolder, boolean useFade) {
+    public static PhotoFragment createInstance(PhotoMeta meta, int width, int height) {
         PhotoFragment photoFragment = new PhotoFragment();
         Bundle arguments = new Bundle();
         arguments.putSerializable(BundleKeys.PHOTO_META_KEY, meta);
-        arguments.putParcelable(BundleKeys.BITMAP_KEY, preLoadBitmap);
-        arguments.putBoolean(BundleKeys.USE_PLACE_HOLDER, usePlaceHolder);
-        arguments.putBoolean(BundleKeys.USE_FADE, useFade);
+        arguments.putInt(BundleKeys.WIDTH_KEY, width);
+        arguments.putInt(BundleKeys.HEIGHT_KEY, height);
         photoFragment.setArguments(arguments);
         return photoFragment;
     }
@@ -73,9 +67,8 @@ public class PhotoFragment extends Fragment {
 
         Bundle arguments = getArguments();
         mPhotoMeta = (PhotoMeta) arguments.getSerializable(BundleKeys.PHOTO_META_KEY);
-        mPreloadBitmap = arguments.getParcelable(BundleKeys.BITMAP_KEY);
-        mUsePlaceHolder = arguments.getBoolean(BundleKeys.USE_PLACE_HOLDER);
-        mUseFade = arguments.getBoolean(BundleKeys.USE_FADE);
+        mWidth = arguments.getInt(BundleKeys.WIDTH_KEY);
+        mHeight = arguments.getInt(BundleKeys.HEIGHT_KEY);
         return root;
     }
 
@@ -86,21 +79,48 @@ public class PhotoFragment extends Fragment {
     }
 
     /**
-     * If preload bitmap exists, load that first. Then load the real image.
-     * <p/>
-     * Note, disk caching is not used on purpose.
+     * Load image into image view. If all parameters are know, disk caching will be used. Otherwise, plain picasso
+     * is used.
      */
     private void loadPhoto() {
-        if (mPreloadBitmap != null) {
-            mImageView.setImageBitmap(mPreloadBitmap);
+        int imageWidth = mPhotoMeta.getWidth();
+        int imageHeight = mPhotoMeta.getHeight();
+        if (imageWidth == 0 || imageHeight == 0 || mWidth == 0 || mHeight == 0) {
+            SinglePicasso.getPicasso().load(new File(mPhotoMeta.getUrl())).fit().centerInside().into(mImageView);
+            Log.d("Peter100", "PhotoFragment.loadPhoto loading with single picasso");
+        } else {
+            float factor = calcScaleFactor(imageWidth, imageHeight);
+            int resizeX = (int) (factor * mPhotoMeta.getRawWidth());
+            final DiskPicasso instance = DiskPicasso.getInstance();
+            List<CacheEntry> cacheEntries = instance.getCacheEntries(mPhotoMeta.getUrl());
+            CacheEntry match = DiskPicasso.findMatch(cacheEntries, resizeX, 0, JPEG_CONFIG);
+            if (match != null) {
+                Log.d("Peter100", "PhotoFragment.loadPhoto cached " + match);
+                SinglePicasso.getPicasso().load(match.getCacheFile()).config(JPEG_CONFIG).into(mImageView);
+            } else {
+                Log.d("Peter100", "PhotoFragment.loadPhoto not cached " + mPhotoMeta);
+                instance.loadWithCacheWrite(mPhotoMeta.getUrl(), JPEG_CONFIG).resize(resizeX, 0).into(mImageView);
+            }
         }
-        RequestCreator load = SinglePicasso.getPicasso().load(new File(mPhotoMeta.getUrl()));
-        if (!mUsePlaceHolder) {
-            load.noPlaceholder();
+    }
+
+    /**
+     * Calculate the minimum scale factor to scale down just about enough.
+     *
+     * @param imageWidth  Image width, orientation taken into account.
+     * @param imageHeight Image height, orientation taken into account.
+     * @return The minimum scale factor.
+     */
+    private float calcScaleFactor(int imageWidth, int imageHeight) {
+        float xFactor = 1.0f;
+        float yFactor = 1.0f;
+
+        if (imageWidth > mWidth) {
+            xFactor = mWidth / (float) imageWidth;
         }
-        if (!mUseFade) {
-            load.noFade();
+        if (imageHeight > mHeight) {
+            yFactor = mHeight / (float) imageHeight;
         }
-        load.fit().centerInside().into(mImageView);
+        return Math.min(xFactor, yFactor);
     }
 }

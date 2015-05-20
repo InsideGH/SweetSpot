@@ -12,7 +12,6 @@ import com.sweetlab.sweetspot.photometa.MetaHelper;
 import com.sweetlab.sweetspot.photometa.PhotoMeta;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import rx.Observable;
@@ -23,7 +22,7 @@ import rx.functions.Action1;
  * <p/>
  * The collection contains both photos and day date dividers.
  */
-public class CollectionLoader extends AsyncTaskLoader<List<CollectionItem>> {
+public class CollectionLoader extends AsyncTaskLoader<Collection> {
 
     /**
      * Uri for local images.
@@ -56,7 +55,7 @@ public class CollectionLoader extends AsyncTaskLoader<List<CollectionItem>> {
     /**
      * List holding collection items.
      */
-    private List<CollectionItem> mDataList;
+    private Collection mDataList;
 
     /**
      * RxJava collection modifier. The modifier will be passed the whole photo collection.
@@ -75,7 +74,7 @@ public class CollectionLoader extends AsyncTaskLoader<List<CollectionItem>> {
     }
 
     @Override
-    public List<CollectionItem> loadInBackground() {
+    public Collection loadInBackground() {
         Cursor cursor = getPhotoCursor();
         if (cursor != null) {
             try {
@@ -87,16 +86,16 @@ public class CollectionLoader extends AsyncTaskLoader<List<CollectionItem>> {
                         list.add(collectionItem);
                     }
                 });
-                return list;
+                return new Collection(list);
             } finally {
                 cursor.close();
             }
         }
-        return Collections.emptyList();
+        return new Collection(new ArrayList<CollectionItem>(0));
     }
 
     @Override
-    public void deliverResult(List<CollectionItem> data) {
+    public void deliverResult(Collection data) {
         mDataList = data;
         if (isStarted()) {
             super.deliverResult(data);

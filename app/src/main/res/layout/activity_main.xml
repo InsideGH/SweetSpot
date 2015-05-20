@@ -4,11 +4,9 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <FrameLayout
-        android:id="@+id/main_activity_container"
+    <com.sweetlab.sweetspot.view.MainGridRecyclerView
+        android:id="@+id/main_grid_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-    </FrameLayout>
+        android:layout_height="match_parent"></com.sweetlab.sweetspot.view.MainGridRecyclerView>
 
 </RelativeLayout>
