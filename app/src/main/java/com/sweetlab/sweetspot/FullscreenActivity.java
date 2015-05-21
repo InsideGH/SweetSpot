@@ -24,9 +24,9 @@ import com.sweetlab.sweetspot.modifiers.CollectionModifier;
 import com.sweetlab.sweetspot.modifiers.NoModifier;
 import com.sweetlab.sweetspot.view.CarouselLayoutManager;
 import com.sweetlab.sweetspot.view.CarouselRecyclerView;
+import com.sweetlab.sweetspot.view.ImageViewTint;
 import com.sweetlab.sweetspot.view.ViewHelper;
 import com.sweetlab.sweetspot.view.ViewPagerView;
-import com.sweetlab.sweetspot.view.ImageViewTint;
 
 import rx.Observer;
 
@@ -87,6 +87,11 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
      */
     private int mTintColor;
 
+    /**
+     * The duration of hide/show carousel.
+     */
+    private int mToggleDuration;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +99,7 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
 
         mTintDuration = getResources().getInteger(R.integer.carousel_tint_duration);
         mTintColor = getResources().getColor(R.color.collection_item_tint_color);
+        mToggleDuration = getResources().getInteger(R.integer.carousel_toggle_duration);
 
         mCurrentPosition = getIntent().getIntExtra(BundleKeys.UNMODIFIED_POSITION, 0);
 
@@ -251,11 +257,15 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
 
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
-                int duration = getResources().getInteger(R.integer.carousel_toggle_duration);
-                if (mCarouselView.getAlpha() == 1) {
-                    mCarouselView.animate().alpha(0).setDuration(duration);
+                Object isHidingObject = mCarouselView.getTag(R.id.TAG_VIEW_CAROUSEL_IS_HIDING);
+                boolean isHiding = isHidingObject != null ? (boolean) isHidingObject : false;
+
+                if (isHiding) {
+                    mCarouselView.setTag(R.id.TAG_VIEW_CAROUSEL_IS_HIDING, false);
+                    mCarouselView.animate().alpha(1).translationY(0).setDuration(mToggleDuration);
                 } else {
-                    mCarouselView.animate().alpha(1).setDuration(duration);
+                    mCarouselView.setTag(R.id.TAG_VIEW_CAROUSEL_IS_HIDING, true);
+                    mCarouselView.animate().alpha(0).translationY(mCarouselView.getHeight()).setDuration(mToggleDuration);
                 }
                 return true;
             }

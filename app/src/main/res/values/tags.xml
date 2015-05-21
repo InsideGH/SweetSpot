@@ -3,4 +3,5 @@
     <item name="TAG_VIEW_TINT_COLOR" type="id"/>
     <item name="TAG_VIEW_TINT_HAS_COLOR_FILTER" type="id"/>
     <item name="TAG_VIEW_TINT_VALUE_ANIMATOR" type="id"/>
+    <item name="TAG_VIEW_CAROUSEL_IS_HIDING" type="id"/>
 </resources>
