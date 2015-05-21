@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/photo_collection_item_main_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="@dimen/collection_item_margin"
+    android:padding="@dimen/collection_item_margin"
     android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/photo_collection_placeholder_background_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/collection_item_placeholder_color"

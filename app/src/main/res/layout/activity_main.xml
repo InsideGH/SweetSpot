@@ -5,8 +5,10 @@
     tools:context=".MainActivity">
 
     <com.sweetlab.sweetspot.view.MainGridRecyclerView
+        android:scrollbars="vertical"
+        android:fadeScrollbars="true"
         android:id="@+id/main_grid_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></com.sweetlab.sweetspot.view.MainGridRecyclerView>
+        android:layout_height="match_parent"/>
 
 </RelativeLayout>

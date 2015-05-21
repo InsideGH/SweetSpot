@@ -5,13 +5,16 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.sweetlab.sweetspot.adapter.CollectionAdapter;
+import com.sweetlab.sweetspot.adapter.CollectionItemClick;
 import com.sweetlab.sweetspot.adapter.ViewPagerAdapter;
 import com.sweetlab.sweetspot.loader.Collection;
 import com.sweetlab.sweetspot.loader.CollectionLoader;
@@ -19,9 +22,13 @@ import com.sweetlab.sweetspot.loader.LoaderConstants;
 import com.sweetlab.sweetspot.messaging.BundleKeys;
 import com.sweetlab.sweetspot.modifiers.CollectionModifier;
 import com.sweetlab.sweetspot.modifiers.NoModifier;
+import com.sweetlab.sweetspot.view.CarouselLayoutManager;
 import com.sweetlab.sweetspot.view.CarouselRecyclerView;
 import com.sweetlab.sweetspot.view.ViewHelper;
 import com.sweetlab.sweetspot.view.ViewPagerView;
+import com.sweetlab.sweetspot.view.ImageViewTint;
+
+import rx.Observer;
 
 public class FullscreenActivity extends FragmentActivity implements LoaderManager.LoaderCallbacks<Collection> {
 
@@ -63,27 +70,56 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
     /**
      * Carousel layout manager.
      */
-    private StaggeredGridLayoutManager mCarouselLayoutManager;
+    private CarouselLayoutManager mCarouselLayoutManager;
 
-    private int mStartPosition;
+    /**
+     * The current photo position.
+     */
+    private int mCurrentPosition;
+
+    /**
+     * Carousel item tint duration.
+     */
+    private int mTintDuration;
+
+    /**
+     * Carousel item tint color.
+     */
+    private int mTintColor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fullscreen_main);
+
+        mTintDuration = getResources().getInteger(R.integer.carousel_tint_duration);
+        mTintColor = getResources().getColor(R.color.collection_item_tint_color);
+
+        mCurrentPosition = getIntent().getIntExtra(BundleKeys.UNMODIFIED_POSITION, 0);
+
         mPagerView = (ViewPagerView) findViewById(R.id.viewpager_view);
 
         mCarouselView = (CarouselRecyclerView) findViewById(R.id.carousel_view);
         mCarouselView.setHasFixedSize(true);
         mCarouselSpan = getResources().getInteger(R.integer.carousel_span);
-        mCarouselLayoutManager = new StaggeredGridLayoutManager(mCarouselSpan, RECYCLER_VIEW_ORIENTATION);
-        mCarouselLayoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
+        mCarouselLayoutManager = new CarouselLayoutManager(getApplicationContext());
         mCarouselView.setLayoutManager(mCarouselLayoutManager);
         mCarouselSpan = getResources().getInteger(R.integer.carousel_span);
-
-        mStartPosition = getIntent().getIntExtra(BundleKeys.UNMODIFIED_POSITION, 0);
+        mCarouselView.setOnScrollListener(new CarouselOnScrollListener());
 
         getSupportLoaderManager().initLoader(LoaderConstants.VIEWPAGER, null, this);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(BundleKeys.UNMODIFIED_POSITION, mCurrentPosition);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mCurrentPosition = savedInstanceState.getInt(BundleKeys.UNMODIFIED_POSITION);
     }
 
     @Override
@@ -99,21 +135,20 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
         ViewHelper.runOnLayout(mCarouselView, new Runnable() {
             @Override
             public void run() {
-                Log.d("Peter100", "FullscreenActivity.run mCarouselView " + mCarouselView.getWidth() + " " + mCarouselView.getHeight());
                 mCarouselView.setAdapter(mCarouselAdapter);
-                mCarouselView.scrollToPosition(mStartPosition);
+                mCarouselView.scrollToPosition(mCurrentPosition);
+                mCarouselAdapter.subscribeForClicks(new CarouselClickObserver());
             }
         });
 
         ViewHelper.runOnLayout(mPagerView, new Runnable() {
             @Override
             public void run() {
-                Log.d("Peter100", "FullscreenActivity.run mPagerView " + mPagerView.getWidth() + " " + mPagerView.getHeight());
                 mViewPagerAdapter.setDimensions(mPagerView.getWidth(), mPagerView.getHeight());
                 mPagerView.setAdapter(mViewPagerAdapter);
-                mPagerView.setOnTouchListener(new OnTouchListener());
-                mPagerView.setOnPageChangeListener(new OnPageListener());
-                mPagerView.setCurrentItem(mStartPosition);
+                mPagerView.setOnTouchListener(new ViewPagerOnTouchListener());
+                mPagerView.setOnPageChangeListener(new ViewPagerOnPageListener());
+                mPagerView.setCurrentItem(mCurrentPosition);
             }
         });
     }
@@ -129,9 +164,79 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
     }
 
     /**
-     * The viewpager onTouch listener.
+     * Clear tint from all visible items in the carousel.
      */
-    private class OnTouchListener implements View.OnTouchListener {
+    private void clearTintFromCarousel() {
+        int firstPos = mCarouselLayoutManager.findFirstVisibleItemPosition();
+        int lastPos = mCarouselLayoutManager.findLastVisibleItemPosition();
+        for (int i = firstPos; i <= lastPos; i++) {
+            View root = mCarouselLayoutManager.findViewByPosition(i);
+            if (root != null) {
+                View view = root.findViewById(R.id.photo_collection_imageview);
+                if (view != null) {
+                    Log.d("Peter100", "clear tint " + i);
+                    ImageViewTint.animateToNoTint((ImageView) view, mTintDuration);
+                }
+            }
+        }
+    }
+
+    /**
+     * Tint the item a current position in the carousel.
+     */
+    private void tintCurrentCarouselItem() {
+        View root = mCarouselLayoutManager.findViewByPosition(mCurrentPosition);
+        if (root != null) {
+            View view = root.findViewById(R.id.photo_collection_imageview);
+            if (view != null) {
+                Log.d("Peter100", "tint " + mCurrentPosition);
+                ImageViewTint.animateToTint(((ImageView) view), mTintColor, mTintDuration);
+            }
+        }
+    }
+
+    /**
+     * Carousel on scroll listener.
+     */
+    private class CarouselOnScrollListener extends RecyclerView.OnScrollListener {
+
+        @Override
+        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                clearTintFromCarousel();
+            }
+            if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                clearTintFromCarousel();
+                tintCurrentCarouselItem();
+            }
+        }
+    }
+
+    /**
+     * The carousel item click listener.
+     */
+    private class CarouselClickObserver implements Observer<CollectionItemClick> {
+        @Override
+        public void onCompleted() {
+
+        }
+
+        @Override
+        public void onError(Throwable e) {
+
+        }
+
+        @Override
+        public void onNext(CollectionItemClick collectionItemClick) {
+            mCurrentPosition = collectionItemClick.getAdapterPosition();
+            mPagerView.setCurrentItem(mCurrentPosition);
+        }
+    }
+
+    /**
+     * The ViewPager onTouch listener.
+     */
+    private class ViewPagerOnTouchListener implements View.OnTouchListener {
 
         private GestureDetector mGestureDetector = new GestureDetector(getApplicationContext(), new GestureDetector.OnGestureListener() {
             @Override
@@ -177,7 +282,10 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
         }
     }
 
-    private class OnPageListener implements ViewPager.OnPageChangeListener {
+    /**
+     * The ViewPager pager listener.
+     */
+    private class ViewPagerOnPageListener implements ViewPager.OnPageChangeListener {
 
         @Override
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -185,7 +293,15 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
 
         @Override
         public void onPageSelected(int position) {
-            mCarouselView.scrollToPosition(position);
+            mCurrentPosition = position;
+            mCarouselView.smoothScrollToPosition(mCurrentPosition);
+
+            int firstPos = mCarouselLayoutManager.findFirstCompletelyVisibleItemPosition();
+            int lastPos = mCarouselLayoutManager.findLastCompletelyVisibleItemPosition();
+            if (mCurrentPosition >= firstPos && mCurrentPosition <= lastPos) {
+                clearTintFromCarousel();
+                tintCurrentCarouselItem();
+            }
         }
 
         @Override

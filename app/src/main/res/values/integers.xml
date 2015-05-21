@@ -3,4 +3,5 @@
     <integer name="carousel_span">1</integer>
     <integer name="main_grid_span">3</integer>
     <integer name="carousel_toggle_duration">300</integer>
+    <integer name="carousel_tint_duration">400</integer>
 </resources>

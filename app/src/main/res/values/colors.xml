@@ -4,4 +4,5 @@
     <color name="actionbar_color">#a033b5e5</color>
     <color name="collection_item_placeholder_color">#3033b5e5</color>
     <color name="collection_item_date_color">#FF33b5e5</color>
+    <color name="collection_item_tint_color">#a0ffffff</color>
 </resources>
