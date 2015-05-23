@@ -11,15 +11,18 @@ import com.sweetlab.sweetspot.view.AspectImageView;
  */
 public class PhotoViewHolder extends RecyclerView.ViewHolder {
     private final AspectImageView mImageView;
+    private final PhotoClickListener mClickListener;
 
     /**
      * Constructor.
      *
      * @param photo The photo root view.
      */
-    public PhotoViewHolder(View photo) {
+    public PhotoViewHolder(View photo, PhotoClickListener clickListener) {
         super(photo);
         mImageView = (AspectImageView) photo.findViewById(R.id.photo_collection_imageview);
+        mImageView.setOnClickListener(clickListener);
+        mClickListener = clickListener;
     }
 
     /**
@@ -29,5 +32,14 @@ public class PhotoViewHolder extends RecyclerView.ViewHolder {
      */
     public AspectImageView getImageView() {
         return mImageView;
+    }
+
+    /**
+     * Get the click listener.
+     *
+     * @return The click listener.
+     */
+    public PhotoClickListener getClickListener() {
+        return mClickListener;
     }
 }

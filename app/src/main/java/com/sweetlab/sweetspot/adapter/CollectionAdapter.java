@@ -98,7 +98,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         switch (viewType) {
             case CollectionItem.TYPE_PHOTO:
                 View photoView = LayoutInflater.from(parent.getContext()).inflate(R.layout.photo_collection_item, parent, false);
-                return new PhotoViewHolder(photoView);
+                return new PhotoViewHolder(photoView, new PhotoClickListener(mClickSubject));
             case CollectionItem.TYPE_DATE:
                 View dateView = LayoutInflater.from(parent.getContext()).inflate(R.layout.photo_collection_date, parent, false);
                 return new DateViewHolder(dateView);
@@ -117,7 +117,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 PhotoViewHolder photoHolder = (PhotoViewHolder) holder;
 
                 int unmodifiedPosition = mCollection.getUnmodifiedPosition(position);
-                setClickListener(position, unmodifiedPosition, photoMeta, photoHolder);
+                configureClickListener(position, unmodifiedPosition, photoMeta, photoHolder);
                 configurePhotoView(photoMeta, photoHolder);
                 loadPhotoView(photoMeta, photoHolder);
                 break;
@@ -125,6 +125,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             case CollectionItem.TYPE_DATE:
                 DateMeta dateMeta = collectionItem.getObject(DateMeta.class);
                 DateViewHolder dateHolder = (DateViewHolder) holder;
+
                 configureDateView(dateMeta, dateHolder);
                 break;
 
@@ -167,6 +168,18 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         dateHolder.getDateTextView().setText(dateMeta.toString());
         StaggeredGridLayoutManager.LayoutParams layoutParams = (StaggeredGridLayoutManager.LayoutParams) dateHolder.itemView.getLayoutParams();
         layoutParams.setFullSpan(true);
+    }
+
+    /**
+     * Set a click listener on the photo.
+     *
+     * @param adapterPosition    Adapter position.
+     * @param unmodifiedPosition
+     * @param photoMeta          Photo meta data.
+     * @param holder             Holder with view.
+     */
+    private void configureClickListener(int adapterPosition, int unmodifiedPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
+        holder.getClickListener().configure(adapterPosition, unmodifiedPosition, photoMeta, holder);
     }
 
     /**
@@ -249,40 +262,6 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 }
             default:
                 throw new RuntimeException("wtf");
-        }
-    }
-
-    /**
-     * Set a click listener on the photo.
-     *
-     * @param adapterPosition    Adapter position.
-     * @param unmodifiedPosition
-     * @param photoMeta          Photo meta data.
-     * @param holder             Holder with view.
-     */
-    private void setClickListener(int adapterPosition, int unmodifiedPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
-        holder.getImageView().setOnClickListener(new ViewOnClickListener(adapterPosition, unmodifiedPosition, photoMeta, holder));
-    }
-
-    /**
-     * Click listener for photos.
-     */
-    private class ViewOnClickListener implements View.OnClickListener {
-        private final int mAdapterPosition;
-        private final PhotoMeta mPhotoMeta;
-        private final PhotoViewHolder mHolder;
-        private final int mUnmodifiedPosition;
-
-        public ViewOnClickListener(int adapterPosition, int unmodifiedPosition, PhotoMeta photoMeta, PhotoViewHolder holder) {
-            mAdapterPosition = adapterPosition;
-            mUnmodifiedPosition = unmodifiedPosition;
-            mPhotoMeta = photoMeta;
-            mHolder = holder;
-        }
-
-        @Override
-        public void onClick(View v) {
-            mClickSubject.onNext(new CollectionItemClick(mAdapterPosition, mUnmodifiedPosition, mPhotoMeta, mHolder));
         }
     }
 }
