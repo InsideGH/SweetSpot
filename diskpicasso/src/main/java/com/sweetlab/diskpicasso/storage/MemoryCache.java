@@ -18,7 +18,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * This is a memory cache for cache entries. The size of the case is based on the
  * cache entry sizes and not the cache entry count.
  */
-public class CacheEntryCache {
+public class MemoryCache {
     /**
      * Read write lock.
      */
@@ -32,7 +32,7 @@ public class CacheEntryCache {
     /**
      * Map holding cache entries with original source path as key.
      */
-    private final Map<String, List<CacheEntry>> mCacheMap;
+    private final Map<String, List<CacheEntry>> mFileKeyListMap;
 
     /**
      * Listener for evictions.
@@ -45,44 +45,43 @@ public class CacheEntryCache {
      * @param cacheSizeBytes   Cache size in bytes.
      * @param evictionListener Eviction listener.
      */
-    public CacheEntryCache(int cacheSizeBytes, EvictionListener evictionListener) {
+    public MemoryCache(int cacheSizeBytes, EvictionListener evictionListener) {
         mMemoryLock = new ReentrantReadWriteLock(true);
         mCacheLimiter = new CacheLimiter(cacheSizeBytes);
-        mCacheMap = new HashMap<>();
+        mFileKeyListMap = new HashMap<>();
         mEvictionListener = evictionListener;
     }
 
     /**
      * Get cache entry from memory cache.
      *
-     * @param originalPath The source path.
-     * @param cachedWidth  The wanted width of the cached image.
-     * @param cachedHeight The wanted height of the cached image.
-     * @param cachedConfig The wanted bitmap config of the cached image.
+     * @param fileKey The source file key.
+     * @param width   The wanted width of the cached image.
+     * @param height  The wanted height of the cached image.
+     * @param config  The wanted bitmap config of the cached image.
      * @return File representing the cache file or null of not found.
      */
-    public File getExact(String originalPath, int cachedWidth, int cachedHeight,
-                         Bitmap.Config cachedConfig) {
-        long identity = CacheEntry.calcIdentity(originalPath, cachedWidth, cachedHeight, cachedConfig);
+    public File getExact(String fileKey, int width, int height, Bitmap.Config config) {
+        long primaryKey = CacheEntry.calcPrimaryKey(fileKey, width, height, config);
         mMemoryLock.readLock().lock();
         try {
-            CacheEntry entry = mCacheLimiter.get(identity);
-            return entry != null ? entry.getCacheFile() : null;
+            CacheEntry entry = mCacheLimiter.get(primaryKey);
+            return entry != null ? entry.getFile() : null;
         } finally {
             mMemoryLock.readLock().unlock();
         }
     }
 
     /**
-     * Get all cache entries for given file path.
+     * Get all cache entries for given a source file key.
      *
-     * @param originalPath The original file path.
+     * @param fileKey The source file key.
      * @return Unmodifiable list of cache entries.
      */
-    public List<CacheEntry> get(String originalPath) {
-        List<CacheEntry> cacheEntries = mCacheMap.get(originalPath);
+    public List<CacheEntry> get(String fileKey) {
+        List<CacheEntry> cacheEntries = mFileKeyListMap.get(fileKey);
         if (cacheEntries != null) {
-            return Collections.unmodifiableList(mCacheMap.get(originalPath));
+            return Collections.unmodifiableList(mFileKeyListMap.get(fileKey));
         }
         return Collections.emptyList();
     }
@@ -95,15 +94,18 @@ public class CacheEntryCache {
     public void put(CacheEntry entry) {
         mMemoryLock.writeLock().lock();
         try {
-            List<CacheEntry> cacheEntries = mCacheMap.get(entry.getOriginalFilePath());
-            if (cacheEntries == null) {
-                cacheEntries = new ArrayList<>();
-                mCacheMap.put(entry.getOriginalFilePath(), cacheEntries);
+            final String fileKey = entry.getFileKey();
+            final long primaryKey = entry.getPrimaryKey();
+
+            List<CacheEntry> entryList = mFileKeyListMap.get(fileKey);
+            if (entryList == null) {
+                entryList = new ArrayList<>();
+                mFileKeyListMap.put(fileKey, entryList);
             }
-            if (!cacheEntries.contains(entry)) {
-                cacheEntries.add(entry);
+            if (!entryList.contains(entry)) {
+                entryList.add(entry);
             }
-            mCacheLimiter.put(entry.getIdentity(), entry);
+            mCacheLimiter.put(primaryKey, entry);
         } finally {
             mMemoryLock.writeLock().unlock();
         }
@@ -117,11 +119,14 @@ public class CacheEntryCache {
     public void remove(CacheEntry entry) {
         mMemoryLock.writeLock().lock();
         try {
-            List<CacheEntry> reflectionEntries = mCacheMap.get(entry.getOriginalFilePath());
-            if (reflectionEntries != null) {
-                reflectionEntries.remove(entry);
+            final String fileKey = entry.getFileKey();
+            final long primaryKey = entry.getPrimaryKey();
+
+            List<CacheEntry> entryList = mFileKeyListMap.get(fileKey);
+            if (entryList != null) {
+                entryList.remove(entry);
             }
-            mCacheLimiter.remove(entry.getIdentity());
+            mCacheLimiter.remove(primaryKey);
         } finally {
             mMemoryLock.writeLock().unlock();
         }
@@ -136,8 +141,8 @@ public class CacheEntryCache {
         if (entries != null) {
             mMemoryLock.writeLock().lock();
             try {
-                for (CacheEntry e : entries) {
-                    put(e);
+                for (CacheEntry entry : entries) {
+                    put(entry);
                 }
             } finally {
                 mMemoryLock.writeLock().unlock();

@@ -179,17 +179,17 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private void loadPhotoView(final PhotoMeta photo, PhotoViewHolder holder) {
         final AspectImageView imageView = holder.getImageView();
         final DiskPicasso instance = DiskPicasso.getInstance();
-        List<CacheEntry> cacheEntries = instance.getCacheEntries(photo.getUrl());
+        List<CacheEntry> cacheEntries = instance.getFromCache(photo.getFileKey());
 
         final int resizeX = calcPicassoResizeX(photo);
         final int resizeY = calcPicassoResizeY(photo);
         CacheEntry match = DiskPicasso.findMatch(cacheEntries, resizeX, resizeY, JPEG_CONFIG);
         if (match != null) {
             Log.d("Peter100", "CollectionAdapter.loadPhotoView cached " + match);
-            SinglePicasso.getPicasso().load(match.getCacheFile()).into(imageView);
+            SinglePicasso.getPicasso().load(match.getFile()).into(imageView);
         } else {
             Log.d("Peter100", "CollectionAdapter.loadPhotoView not cached " + photo);
-            instance.loadWithCacheWrite(photo.getUrl(), JPEG_CONFIG).resize(resizeX, resizeY).into(imageView);
+            instance.loadAndWrite(photo.getSourcePath(), photo.getFileKey(), JPEG_CONFIG).resize(resizeX, resizeY).into(imageView);
         }
     }
 

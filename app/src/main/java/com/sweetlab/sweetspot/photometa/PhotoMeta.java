@@ -26,7 +26,7 @@ public class PhotoMeta implements Serializable {
     /**
      * The absolute path to the file.
      */
-    private final String mUrl;
+    private final String mSourcePath;
 
     /**
      * The orientation.
@@ -64,16 +64,23 @@ public class PhotoMeta implements Serializable {
     private final Integer mDay;
 
     /**
+     * Source file key.
+     */
+    private final String mFileKey;
+
+    /**
      * Create a immutable photo meta.
      *
-     * @param path        The absolute path to file.
+     * @param sourcePath  Source path.
+     * @param fileKey     Source file key.
      * @param width       The width of the image, without rotation taken into count.
      * @param height      The height of the image, without rotation taken into count.
      * @param orientation The orientation of the image.
      * @param dateTaken   Date taken in milliseconds from 1970.
      */
-    public PhotoMeta(String path, int width, int height, int orientation, long dateTaken) {
-        mUrl = path;
+    public PhotoMeta(String sourcePath, String fileKey, int width, int height, int orientation, long dateTaken) {
+        mFileKey = fileKey;
+        mSourcePath = sourcePath;
         mWidth = width;
         mHeight = height;
         mOrientation = orientation;
@@ -90,12 +97,21 @@ public class PhotoMeta implements Serializable {
     }
 
     /**
+     * The the source file key.
+     *
+     * @return The file key.
+     */
+    public String getFileKey() {
+        return mFileKey;
+    }
+
+    /**
      * Get the absolute path of the photo.
      *
      * @return The path.
      */
-    public String getUrl() {
-        return mUrl;
+    public String getSourcePath() {
+        return mSourcePath;
     }
 
     /**
@@ -221,6 +237,6 @@ public class PhotoMeta implements Serializable {
 
     @Override
     public String toString() {
-        return mUrl + " w " + mWidth + " h = " + mHeight;
+        return mSourcePath + " w " + mWidth + " h = " + mHeight;
     }
 }

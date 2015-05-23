@@ -86,20 +86,20 @@ public class PhotoFragment extends Fragment {
         int imageWidth = mPhotoMeta.getWidth();
         int imageHeight = mPhotoMeta.getHeight();
         if (imageWidth == 0 || imageHeight == 0 || mWidth == 0 || mHeight == 0) {
-            SinglePicasso.getPicasso().load(new File(mPhotoMeta.getUrl())).fit().centerInside().into(mImageView);
+            SinglePicasso.getPicasso().load(new File(mPhotoMeta.getSourcePath())).fit().centerInside().into(mImageView);
             Log.d("Peter100", "PhotoFragment.loadPhoto loading with single picasso");
         } else {
             float factor = calcScaleFactor(imageWidth, imageHeight);
             int resizeX = (int) (factor * mPhotoMeta.getRawWidth());
             final DiskPicasso instance = DiskPicasso.getInstance();
-            List<CacheEntry> cacheEntries = instance.getCacheEntries(mPhotoMeta.getUrl());
+            List<CacheEntry> cacheEntries = instance.getFromCache(mPhotoMeta.getFileKey());
             CacheEntry match = DiskPicasso.findMatch(cacheEntries, resizeX, 0, JPEG_CONFIG);
             if (match != null) {
                 Log.d("Peter100", "PhotoFragment.loadPhoto cached " + match);
-                SinglePicasso.getPicasso().load(match.getCacheFile()).config(JPEG_CONFIG).into(mImageView);
+                SinglePicasso.getPicasso().load(match.getFile()).config(JPEG_CONFIG).into(mImageView);
             } else {
                 Log.d("Peter100", "PhotoFragment.loadPhoto not cached " + mPhotoMeta);
-                instance.loadWithCacheWrite(mPhotoMeta.getUrl(), JPEG_CONFIG).resize(resizeX, 0).into(mImageView);
+                instance.loadAndWrite(mPhotoMeta.getSourcePath(), mPhotoMeta.getFileKey(), JPEG_CONFIG).resize(resizeX, 0).into(mImageView);
             }
         }
     }
