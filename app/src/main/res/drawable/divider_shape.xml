@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <corners android:radius="@dimen/divider_rounded_corner" />
-    <solid android:color="@color/collection_item_date_color" />
     <padding
         android:bottom="@dimen/collection_item_text_padding"
         android:top="@dimen/collection_item_text_padding" />
-    <gradient
-        android:centerColor="@color/collection_item_date_color"
-        android:endColor="@color/collection_item_placeholder_color"
-        android:startColor="@color/collection_item_placeholder_color" />
+    <gradient android:centerColor="@color/collection_item_date_color" />
 </shape>

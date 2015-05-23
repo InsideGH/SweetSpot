@@ -9,7 +9,7 @@ public class MainApplication extends Application {
     /**
      * The disk cache size in bytes. Used by DiskPicasso.
      */
-    private static final int DISK_CACHE_SIZE = 100 * 1024 * 1024;
+    private static final int DISK_CACHE_SIZE = 200 * 1024 * 1024;
     /**
      * The memory cache size in bytes. Used by Picasso.
      */
