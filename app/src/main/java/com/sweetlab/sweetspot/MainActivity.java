@@ -100,19 +100,25 @@ public class MainActivity extends FragmentActivity implements LoaderManager.Load
 
     @Override
     public void onLoadFinished(Loader<Collection> loader, Collection list) {
-        mAdapter = new CollectionAdapter(list, RECYCLER_VIEW_ORIENTATION, mSpan);
-        mAdapter.subscribeForClicks(new MainGridClickObserver());
+        if (mAdapter == null) {
+            mAdapter = new CollectionAdapter(list, RECYCLER_VIEW_ORIENTATION, mSpan);
+            mAdapter.subscribeForClicks(new MainGridClickObserver());
+        } else {
+            mAdapter.setCollection(list);
+        }
+
         ViewHelper.runOnLayout(mMainGridRecyclerView, new Runnable() {
             @Override
             public void run() {
-                mMainGridRecyclerView.setAdapter(mAdapter);
+                if (mMainGridRecyclerView.getAdapter() == null) {
+                    mMainGridRecyclerView.setAdapter(mAdapter);
+                }
             }
         });
     }
 
     @Override
     public void onLoaderReset(Loader<Collection> loader) {
-
     }
 
     /**

@@ -53,9 +53,14 @@ public class CollectionLoader extends AsyncTaskLoader<Collection> {
     private static final String SORT_ORDER = MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC";
 
     /**
+     * A collection observer.
+     */
+    private final ForceLoadContentObserver mObserver;
+
+    /**
      * List holding collection items.
      */
-    private Collection mDataList;
+    private Collection mCollection;
 
     /**
      * RxJava collection modifier. The modifier will be passed the whole photo collection.
@@ -71,44 +76,83 @@ public class CollectionLoader extends AsyncTaskLoader<Collection> {
     public CollectionLoader(Context context, CollectionModifier modifier) {
         super(context);
         mModifier = modifier;
+        mObserver = new ForceLoadContentObserver();
     }
 
     @Override
     public Collection loadInBackground() {
-        Cursor cursor = getPhotoCursor();
+        ContentResolver resolver = getContext().getContentResolver();
+        Cursor cursor = resolver.query(INTERNAL_URI, PROJECTION, SELECTION, SELECTION_ARGS, SORT_ORDER);
+
         if (cursor != null) {
             try {
                 final List<CollectionItem> list = new ArrayList<>();
                 List<CollectionItem> photoList = createPhotoList(cursor);
+
                 Observable.from(photoList).flatMap(mModifier).subscribe(new Action1<CollectionItem>() {
                     @Override
                     public void call(CollectionItem collectionItem) {
                         list.add(collectionItem);
                     }
                 });
-                return new Collection(list);
-            } finally {
+
+                cursor.registerContentObserver(mObserver);
+                return new Collection(list, cursor);
+
+            } catch (RuntimeException ex) {
                 cursor.close();
             }
         }
-        return new Collection(new ArrayList<CollectionItem>(0));
+        return new Collection(new ArrayList<CollectionItem>(0), cursor);
     }
 
     @Override
-    public void deliverResult(Collection data) {
-        mDataList = data;
+    public void deliverResult(Collection collection) {
+        if (isReset()) {
+            if (collection != null) {
+                onReleaseResources(collection);
+            }
+        }
+
+        Collection oldCollection = mCollection;
+        mCollection = collection;
+
         if (isStarted()) {
-            super.deliverResult(data);
+            super.deliverResult(collection);
+        }
+
+        if (oldCollection != null && oldCollection != mCollection) {
+            onReleaseResources(oldCollection);
         }
     }
 
     @Override
     protected void onStartLoading() {
-        if (mDataList != null) {
-            deliverResult(mDataList);
-        } else {
+        if (mCollection != null) {
+            deliverResult(mCollection);
+        }
+        if (takeContentChanged() || mCollection == null) {
             forceLoad();
         }
+    }
+
+    @Override
+    protected void onStopLoading() {
+        cancelLoad();
+    }
+
+    @Override
+    public void onCanceled(Collection collection) {
+        if (collection != null) {
+            onReleaseResources(collection);
+        }
+    }
+
+    @Override
+    protected void onReset() {
+        onStopLoading();
+        onReleaseResources(mCollection);
+        mCollection = null;
     }
 
     /**
@@ -130,12 +174,16 @@ public class CollectionLoader extends AsyncTaskLoader<Collection> {
     }
 
     /**
-     * Must be called from background thread.
+     * Release resources.
      *
-     * @return Cursor with local image entries.
+     * @param collection
      */
-    private Cursor getPhotoCursor() {
-        ContentResolver resolver = getContext().getContentResolver();
-        return resolver.query(INTERNAL_URI, PROJECTION, SELECTION, SELECTION_ARGS, SORT_ORDER);
+    private void onReleaseResources(Collection collection) {
+        if (collection != null) {
+            Cursor cursor = collection.getCursor();
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
     }
 }

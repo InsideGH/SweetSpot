@@ -1,5 +1,6 @@
 package com.sweetlab.sweetspot.loader;
 
+import android.database.Cursor;
 import android.util.SparseArray;
 
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
  * This hold a collection of items.
  */
 public class Collection {
+    private final Cursor mCursor;
     private final List<CollectionItem> mList;
     private final SparseArray<Integer> mUnmodifiedPositions;
 
@@ -16,9 +18,19 @@ public class Collection {
      *
      * @param list A list of items that this collection will hold.
      */
-    public Collection(List<CollectionItem> list) {
+    public Collection(List<CollectionItem> list, Cursor cursor) {
+        mCursor = cursor;
         mList = list;
         mUnmodifiedPositions = scanItems(list);
+    }
+
+    /**
+     * Get the raw cursor.
+     *
+     * @return The cursor.
+     */
+    public Cursor getCursor() {
+        return mCursor;
     }
 
     /**

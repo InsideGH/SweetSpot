@@ -17,7 +17,7 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
     /**
      * The list of items.
      */
-    private final Collection mList;
+    private Collection mList;
 
     /**
      * Pager width in pixels.
@@ -55,6 +55,16 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
     @Override
     public int getCount() {
         return mList.getItems().size();
+    }
+
+    /**
+     * Set a new collection.
+     *
+     * @param collection
+     */
+    public void setCollection(Collection collection) {
+        mList = collection;
+        notifyDataSetChanged();
     }
 
     public void setDimensions(int width, int height) {

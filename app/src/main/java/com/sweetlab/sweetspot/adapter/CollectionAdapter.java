@@ -39,7 +39,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     /**
      * The list of items in the collection. Can be either photos or date dividers.
      */
-    private final Collection mCollection;
+    private Collection mCollection;
 
     /**
      * View orientation.
@@ -137,6 +137,16 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     @Override
     public int getItemCount() {
         return mCollection.getItems().size();
+    }
+
+    /**
+     * Set a new collection.
+     *
+     * @param collection
+     */
+    public void setCollection(Collection collection) {
+        mCollection = collection;
+        notifyDataSetChanged();
     }
 
     /**

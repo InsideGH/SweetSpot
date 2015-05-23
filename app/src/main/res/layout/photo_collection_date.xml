@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="@dimen/collection_item_margin"
-    android:background="@color/collection_item_placeholder_color"
     android:orientation="vertical">
 
     <TextView

@@ -135,13 +135,24 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
 
     @Override
     public void onLoadFinished(Loader<Collection> loader, Collection list) {
-        mCarouselAdapter = new CollectionAdapter(list, RECYCLER_VIEW_ORIENTATION, mCarouselSpan);
-        mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), list);
+        if (mCarouselAdapter == null) {
+            mCarouselAdapter = new CollectionAdapter(list, RECYCLER_VIEW_ORIENTATION, mCarouselSpan);
+        } else {
+            mCarouselAdapter.setCollection(list);
+        }
+
+        if (mViewPagerAdapter == null) {
+            mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), list);
+        } else {
+            mViewPagerAdapter.setCollection(list);
+        }
 
         ViewHelper.runOnLayout(mCarouselView, new Runnable() {
             @Override
             public void run() {
-                mCarouselView.setAdapter(mCarouselAdapter);
+                if (mCarouselView.getAdapter() == null) {
+                    mCarouselView.setAdapter(mCarouselAdapter);
+                }
                 mCarouselView.scrollToPosition(mCurrentPosition);
                 mCarouselAdapter.subscribeForClicks(new CarouselClickObserver());
             }
@@ -151,7 +162,9 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
             @Override
             public void run() {
                 mViewPagerAdapter.setDimensions(mPagerView.getWidth(), mPagerView.getHeight());
-                mPagerView.setAdapter(mViewPagerAdapter);
+                if (mPagerView.getAdapter() == null) {
+                    mPagerView.setAdapter(mViewPagerAdapter);
+                }
                 mPagerView.setOnTouchListener(new ViewPagerOnTouchListener());
                 mPagerView.setOnPageChangeListener(new ViewPagerOnPageListener());
                 mPagerView.setCurrentItem(mCurrentPosition);
