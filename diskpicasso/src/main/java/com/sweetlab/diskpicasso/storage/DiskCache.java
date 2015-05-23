@@ -2,7 +2,6 @@ package com.sweetlab.diskpicasso.storage;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.util.Log;
 
 import com.sweetlab.diskpicasso.CacheEntry;
 import com.sweetlab.diskpicasso.filesystem.FileSystem;
@@ -119,7 +118,7 @@ public class DiskCache {
             observable.subscribe(new Action1<CacheEntry>() {
                 @Override
                 public void call(CacheEntry entry) {
-                    Log.d("Peter100", "DiskCache.call put " + entry);
+//                    Log.d("Peter100", "DiskCache.call put " + entry);
                     mMemoryCache.put(entry);
                 }
             });

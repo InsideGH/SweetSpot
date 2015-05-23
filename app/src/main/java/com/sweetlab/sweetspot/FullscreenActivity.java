@@ -7,7 +7,6 @@ import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -193,7 +192,7 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
             if (root != null) {
                 View view = root.findViewById(R.id.photo_collection_imageview);
                 if (view != null) {
-                    Log.d("Peter100", "clear tint " + i);
+//                    Log.d("Peter100", "clear tint " + i);
                     ImageViewTint.animateToNoTint((ImageView) view, mTintDuration);
                 }
             }
@@ -208,7 +207,7 @@ public class FullscreenActivity extends FragmentActivity implements LoaderManage
         if (root != null) {
             View view = root.findViewById(R.id.photo_collection_imageview);
             if (view != null) {
-                Log.d("Peter100", "tint " + mCurrentPosition);
+//                Log.d("Peter100", "tint " + mCurrentPosition);
                 ImageViewTint.animateToTint(((ImageView) view), mTintColor, mTintDuration);
             }
         }

@@ -1,7 +1,6 @@
 package com.sweetlab.diskpicasso.storage;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 import android.util.LruCache;
 
 import com.sweetlab.diskpicasso.CacheEntry;
@@ -167,7 +166,7 @@ public class MemoryCache {
         @Override
         protected void entryRemoved(boolean evicted, Long key, final CacheEntry old, CacheEntry prev) {
             mEvictionListener.onEvicted(old);
-            Log.d("Peter100", "CacheLimiter.entryRemoved " + old);
+//            Log.d("Peter100", "CacheLimiter.entryRemoved " + old);
         }
     }
 }

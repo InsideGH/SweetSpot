@@ -3,7 +3,6 @@ package com.sweetlab.sweetspot.adapter;
 import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -195,10 +194,10 @@ public class CollectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         final int resizeY = calcPicassoResizeY(photo);
         CacheEntry match = DiskPicasso.findMatch(cacheEntries, resizeX, resizeY, JPEG_CONFIG);
         if (match != null) {
-            Log.d("Peter100", "CollectionAdapter.loadPhotoView cached " + match);
+//            Log.d("Peter100", "CollectionAdapter.loadPhotoView cached " + match);
             SinglePicasso.getPicasso().load(match.getFile()).into(imageView);
         } else {
-            Log.d("Peter100", "CollectionAdapter.loadPhotoView not cached " + photo);
+//            Log.d("Peter100", "CollectionAdapter.loadPhotoView not cached " + photo);
             instance.loadAndWrite(photo.getSourcePath(), photo.getFileKey(), JPEG_CONFIG).resize(resizeX, resizeY).into(imageView);
         }
     }
