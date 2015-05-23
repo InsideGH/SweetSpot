@@ -213,6 +213,7 @@ public class DiskCache {
                 @Override
                 public void call() {
                     synchronized (mStorageGuard) {
+                        mMemoryCache.remove(entry);
                         mFileSystem.remove(entry);
                         mJournal.remove(entry);
                     }
